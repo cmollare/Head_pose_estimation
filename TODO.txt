@@ -1,0 +1,54 @@
+En cours :
+
+//tester l'algo camshift d'openCV sur les images détectée en transformée de hough
+implémenter le clustering de fanelli
+
+modifier le vecteur d'état => l'offset est important pr le critère PAS LA POSITION ABSOLUE
+Repasser à la détection après.
+
+continuer la détection (choix entre les 2 types, généraliser à plusieurs arbre, détecter les maxs,etc...)
+faire la detection pour un dossier (Forest::regression)
+puis une image <=> puis un flux video
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+POUR POUVOIR APPRENDRE SUR PLUS D'IMAGES, TRANSFORMER LES CV::MAT EN POINTEUR DANS LE CODE (allocation dynamique)
+
+ajouter une ligne debug dans le fichier xml, pour ajouter la possibilité de sauvegarder les sorties intermédiaires.
+
+
+généraliser à plusieurs forest (class ForestEnv et Forest), créer des sous dossier dans "Trees"
+
+créer une class dérivée de feature pour chaque type de features
+
+ajouter un nb de threshold variable
+
+
+PATCHS:
+rendre la classe patch héritée d'une classe plus générale
+
+Feature:
+ETENDRE LES FEATURES A PLUSIEURS CANAUX => R, G, B, D, + GRAY
+Possibilité de bad alloc dans la fonction split dataSet
+CRITERE A MODIFIER !!! (équilibrage des features ?)
+Ajouter le constructeur de copy à part de la class Feature (ex: pointFeature(Feature&) )
+
+Tree:
+ajouter des paramètres pour les features:
+	plusieurs classes, pureté de chaque classe, etc...
+
+
+
+VERIFICATIONS :
+verifier que la détection fonctionne
+
+OPTIMISATION :
+-accéder aux pixels des patchs directement par les adresses (class Patch)
+-s'inspirer de la fonction CRTree::split() pour augmenter la vitesse de split des vecteurs du ts
+-Libérer de la mémoire dans la classe Feature une fois l'apprentissage terminé...
+-Regarder val_array() pour le trainingset
+-Ordonner les classes directement dans ForestEnd et supprimer les map foireuses
+-Revoir le système d'indexage des noeuds
+
+EXPERIENCES :
+comparer l'apprentissage en mixant les features et en utilisant uniquement un type de feature

@@ -1,0 +1,24 @@
+#!/usr/bin/python2.7
+
+import sys
+import _tkinter
+import Tkinter
+
+root  = Tkinter.Tk()
+
+w = Tkinter.Label(root, text="Hello, world!")
+w.pack()
+
+
+root.mainloop()
+
+while True:
+    test = sys.stdin.readline()
+    if test.find("image") == 0:
+        print test
+    
+
+
+    
+
+

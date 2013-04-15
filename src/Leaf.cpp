@@ -106,7 +106,7 @@ void Leaf::loadLeaf(TiXmlElement *node)
 		pState->QueryDoubleAttribute("mean", &mean);
 		pState->QueryDoubleAttribute("variance", &var);
 
-		_stateVectorMean.at<double>(i) = mean;
+        _stateVectorMean.at<double>(i) = mean;
 		_stateVectorVariance.at<double>(i) = var;
 		i++;
 	}

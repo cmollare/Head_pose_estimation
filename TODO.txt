@@ -1,5 +1,7 @@
 En cours :
 
+Changer le critère de création des feuilles => pas uniquement sur le nb de patchs
+
 //tester l'algo camshift d'openCV sur les images détectée en transformée de hough
 implémenter le clustering de fanelli
 

@@ -38,9 +38,11 @@ void ForestDetector::detect(std::string folder)
 void ForestDetector::detect(cv::Mat& image, std::string imageName)//deuxième paramètre peut-être à supprimer
 {
 	cv::namedWindow("lol");
+    cv::namedWindow("detection");
+    cv::namedWindow("hough");
 	cv::Mat integral;
-	cv::cvtColor(image, image, CV_RGB2GRAY);//Convert image to grayscale image
-	cv::integral(image, integral);
+    cv::cvtColor(image, integral, CV_RGB2GRAY);//Convert image to grayscale image
+    cv::integral(integral, integral);
 	int height = image.size().height;
 	int width = image.size().width;
 	unsigned int patchWidth = _pForestEnv->getPatchWidth();
@@ -48,23 +50,31 @@ void ForestDetector::detect(cv::Mat& image, std::string imageName)//deuxième pa
 	unsigned int nbPatch = (height-patchHeight)*(width-patchWidth);
 	
 	float currentMax=0;
+    double pas=2;
 	
 	//std::vector<Patch*> vecPatch(nbPatch);
-	cv::Mat result = cv::Mat::zeros(image.size(), CV_32F);
+    cv::Mat result = cv::Mat::zeros(image.size().height/pas, image.size().width/pas, CV_32F);
+    cv::Mat angle = cv::Mat::zeros(image.size().height/pas, image.size().width/pas, CV_64F);
 
 	std::vector<cv::Point_<int> > offsetMeans;
 	std::vector<cv::Point_<double> > offsetVar;
 	std::vector<int> nbPatchs;
 
 	cv::Mat imRoi, imIntRoi;
+
+    double roll=0;
+    double meanRoll=0;
+    double minAngle=0, maxAngle=0;
 	
-	for (int x=0 ; x < width-patchWidth ; x++)//cols
+    for (int x=0 ; x < width-patchWidth ; x+=pas)//cols
 	{
-		for (int y=0 ; y < height-patchHeight ; y++)//rows
+        for (int y=0 ; y < height-patchHeight ; y+=pas)//rows
 		{
 			cv::Rect_<int> roi(x, y, patchWidth, patchHeight);
 			cv::Rect_<int> roiInt(x, y, patchWidth+1, patchHeight+1); //patch
+            cv::Mat meanSV;
 			std::vector<cv::Mat> patchs;
+            double conf=0;
 
 
 			image(roi).copyTo(imRoi);
@@ -83,25 +93,45 @@ void ForestDetector::detect(cv::Mat& image, std::string imageName)//deuxième pa
 			std::vector<Leaf*> detectedLeaf;
 			pForest->regression(patch, detectedLeaf);
 
+
+            double test=0;
+            double denom=0;
+
 			for (int i=0 ; i<detectedLeaf.size() ; i++)
 			{
 
 				offsetMeans.push_back(detectedLeaf[i]->getMeanOffsets());
 				offsetVar.push_back(detectedLeaf[i]->getVarOffsets());
 				nbPatchs.push_back(detectedLeaf[i]->getNumberPatchs());
+                meanSV = detectedLeaf[i]->getSVMean();
+                conf = detectedLeaf[i]->getConf();
+
+
 
 				//std::cout << offsetMeans.back() << " " << offsetVar.back() << " " << nbPatchs.back() << std::endl;
 
 				cv::Point_<int> offset(-offsetMeans.back().x+patchWidth/2+x, -offsetMeans.back().y+patchHeight/2+y);
 				if (offset.x >= 0 && offset.x < width && offset.y >= 0 && offset.y < height)
 				{
+                    offset.x = offset.x/pas;
+                    offset.y = offset.y/pas;
 					//if ((offsetVar.back().x <= 200) && (offsetVar.back().y <= 200))
-					if (detectedLeaf[i]->getConf() > 0.5)
-					//result.at<float>(offset) += 1.*float(1./(sqrt(offsetVar.back().x*offsetVar.back().x+offsetVar.back().y*offsetVar.back().y)));
-					result.at<float>(offset) += 1.;
-					//result.at<float>(offset) += 1.*float(nbPatchs.back()/sqrt(offsetVar.back().x*offsetVar.back().y));
-					//result.at<float>(offset) += 1.*float(nbPatchs.back()/sqrt(offsetVar.back().x*offsetVar.back().x+offsetVar.back().y*offsetVar.back().y));
-					if (result.at<float>(offset) > currentMax) currentMax=result.at<float>(offset);
+                    if (conf > 0.60)
+                    {
+                        //result.at<float>(offset) += 1.*float(1./(sqrt(offsetVar.back().x*offsetVar.back().x+offsetVar.back().y*offsetVar.back().y)));
+                        result.at<float>(offset) += conf;
+                        //result.at<float>(offset) += 1.*float(nbPatchs.back()/sqrt(offsetVar.back().x*offsetVar.back().y));
+                        //result.at<float>(offset) += 1.*float(nbPatchs.back()/sqrt(offsetVar.back().x*offsetVar.back().x+offsetVar.back().y*offsetVar.back().y));
+                        //roll += meanSV.at<double>(6)*conf;
+                        denom+=conf;
+                        test+=meanSV.at<double>(4);
+                        angle.at<double>(y/pas, x/pas) = test/denom;
+                        //if (test > maxAngle) maxAngle = test;
+                        //if (test < minAngle) minAngle = test;
+
+                        //meanRoll += conf;
+                    }
+                    if (result.at<float>(offset) > currentMax) currentMax=result.at<float>(offset);
 				}
 			}
 
@@ -153,12 +183,18 @@ void ForestDetector::detect(cv::Mat& image, std::string imageName)//deuxième pa
 	//std::cout << result.depth() << std::endl;
 	//std::cout << result.size().height << " " << result.size().width << std::endl;
 	result=result/currentMax*255;
-	result.convertTo(result, CV_8U);
+    result.convertTo(result, CV_8U);
+
+    std::cout << minAngle << " " << maxAngle-minAngle << std::endl;
+    angle=(angle+22)/45*255;
+    angle.convertTo(angle, CV_8U);
+    cv::applyColorMap(angle, angle, cv::COLORMAP_JET);
+    cv::imshow("hough", angle);
 
 	//cv::Rect rect(result.cols/2-50, result.rows/2-50, 50, 50);
 
-	cv::RotatedRect rotatedRect(cv::Point2f(result.cols/2-50, result.rows/2), cv::Size2f(50, 50), 0);
-	for (int i=0 ; i<2 ; i++)
+    cv::RotatedRect rotatedRect(cv::Point2f(result.cols/pas-50/pas, result.rows/pas), cv::Size2f(50/pas, 50/pas), 0);
+    for (int i=0 ; i<2 ; i++)
 	{
 		cv::Rect rect = rotatedRect.boundingRect();
 		rotatedRect = cv::CamShift(result, rect, cv::TermCriteria(cv::TermCriteria::COUNT + cv::TermCriteria::EPS, 10, 1));
@@ -166,10 +202,20 @@ void ForestDetector::detect(cv::Mat& image, std::string imageName)//deuxième pa
 
 	cv::Mat imageToSave=result.clone();
 	cv::ellipse(imageToSave, rotatedRect, cv::Scalar_<int>(0,255,0), 2);
+    rotatedRect.center = rotatedRect.center*pas;
+    rotatedRect.size.height = rotatedRect.size.height*pas;
+    rotatedRect.size.width = rotatedRect.size.width*pas;
+    rotatedRect.angle = roll/meanRoll;
+
+    std::cout << "angle : " << rotatedRect.angle << std::endl;
+
+    //cv::rectangle(image, rotatedRect.boundingRect(), cv::Scalar_<int>(125,255,125), 2);
+    cv::ellipse(image, rotatedRect, cv::Scalar_<int>(125,255,125), 2);
 
 
 	cv::applyColorMap(imageToSave, imageToSave, cv::COLORMAP_JET);
-	cv::imwrite("../output/"+imageName, imageToSave);
+    cv::imwrite("../output/"+imageName, image);
+    cv::imshow("detection", image);
 	cv::imshow("lol", imageToSave);
 
 	cv::waitKey(50);

@@ -12,6 +12,8 @@
 #include "PointFeature.h"
 #include "RectFeature.h"
 #include "Leaf.h"
+#include <boost/thread/thread.hpp>
+#include <boost/thread/recursive_mutex.hpp>
 
 class Tree
 {
@@ -51,6 +53,10 @@ class Tree
 		
 		std::map<int, Feature*> _treeTable;
 		std::map<int, Leaf*> _leafNodes;
+
+        //For multi threading
+        int _currentThreadNumber, _maxThreadNumber;
+        boost::recursive_mutex _mute;
 		
 		//tmp
 		int _currentDepth;

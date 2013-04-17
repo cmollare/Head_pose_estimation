@@ -51,6 +51,7 @@ target_link_libraries(
 	#libs de boost
 		boost_filesystem
 		boost_system
+                boost_thread
 	#libs de tinyxml
 		tinyxml
 )

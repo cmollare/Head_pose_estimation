@@ -125,8 +125,8 @@ void TrainingSet::extractPatches()
 	for (int i=0 ; i<_vSVParamsName.size() ; i++) if (!_vSVParamsName[i].compare("x")) x=i;
 	for (int i=0 ; i<_vSVParamsName.size() ; i++) if (!_vSVParamsName[i].compare("y")) y=i;
 
-    //for (int imgNum=0 ; imgNum<_vPaths.size() ; imgNum++)
-    for (int imgNum=0 ; imgNum<600 ; imgNum++)
+    for (int imgNum=0 ; imgNum<_vPaths.size() ; imgNum++)
+    //for (int imgNum=0 ; imgNum<600 ; imgNum++)
 	{
 		cv::Mat img = cv::imread(_vPaths[imgNum]);
 		cv::cvtColor(img, img, CV_RGB2GRAY);// Only gray images

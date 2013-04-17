@@ -21,7 +21,7 @@ void ForestDetector::detect(std::string folder)
 	std::vector<fs::path> vec;
 	copy(fs::recursive_directory_iterator(path), fs::recursive_directory_iterator(), back_inserter(vec));
 	unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-	std::shuffle (vec.begin(), vec.end(), std::default_random_engine(seed));
+    //std::shuffle (vec.begin(), vec.end(), std::default_random_engine(seed));
 
 	for (std::vector<fs::path>::const_iterator it=vec.begin() ; it != vec.end() ; ++it)
 	{
@@ -120,6 +120,7 @@ void ForestDetector::detect(cv::Mat& image, std::string imageName)//deuxième pa
                     {
                         //result.at<float>(offset) += 1.*float(1./(sqrt(offsetVar.back().x*offsetVar.back().x+offsetVar.back().y*offsetVar.back().y)));
                         result.at<float>(offset) += conf;
+                        //result.at<float>(offset) += detectedLeaf[i]->getNumberPatchs();
                         //result.at<float>(offset) += 1.*float(nbPatchs.back()/sqrt(offsetVar.back().x*offsetVar.back().y));
                         //result.at<float>(offset) += 1.*float(nbPatchs.back()/sqrt(offsetVar.back().x*offsetVar.back().x+offsetVar.back().y*offsetVar.back().y));
                         //roll += meanSV.at<double>(6)*conf;
@@ -214,7 +215,7 @@ void ForestDetector::detect(cv::Mat& image, std::string imageName)//deuxième pa
 
 
 	cv::applyColorMap(imageToSave, imageToSave, cv::COLORMAP_JET);
-    cv::imwrite("../output/"+imageName, image);
+    cv::imwrite("../output/"+imageName, angle);
     cv::imshow("detection", image);
 	cv::imshow("lol", imageToSave);
 

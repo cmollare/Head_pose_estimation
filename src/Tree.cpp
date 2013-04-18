@@ -12,6 +12,8 @@ Tree::Tree(ForestEnv* forestEnv, TrainingSet* ts, int treeId) : _pForestEnv(fore
 	_treeTable.clear();
 	_leafNodes.clear();
 	_vpPatchs.clear();
+
+    _pThrdManager=NULL;
 }
 
 Tree::Tree(ForestEnv* forestEnv, int treeId) : _pForestEnv(forestEnv), _treeId(treeId)
@@ -26,6 +28,7 @@ Tree::Tree(ForestEnv* forestEnv, int treeId) : _pForestEnv(forestEnv), _treeId(t
 	_leafNodes.clear();
 	_vpPatchs.clear();
 	_pTrainingSet = NULL;
+    _pThrdManager=NULL;
 //	_numClasses = _pForestEnv->getNumberOfClasses();
 		
 	this->loadTree();
@@ -67,19 +70,18 @@ void Tree::growTree()
 	std::cout << size << " positive and " << _vpPatchs.size()-size << " negative" << std::endl;
 	
 	std::cout << "Start growing Tree n°" << _treeId << std::endl;
-    _currentThreadNumber = 1;
-    _maxThreadNumber = boost::thread::hardware_concurrency();
-    std::cout << "Maximum number of threads : " << _maxThreadNumber << std::endl;
 
+    //*******LEARNING*******//
 
-    //*******LEARNING*******\\
+    _pThrdManager = new ThreadManager;
 
 	this->grow(_vpPatchs, 0, 0);
 
-    //******END LEARNING*****\\
+    delete _pThrdManager;
+
+    //******END LEARNING*****//
 
 	std::cout << std::endl << "Tree grown with " << _leafNodes.size() << " leafs and " << _treeTable.size() << " nodes" << std::endl;
-    std::cout << "number of threads : " << _currentThreadNumber << std::endl;
 	
 	this->saveTree();
 	
@@ -87,8 +89,6 @@ void Tree::growTree()
 
 void Tree::grow(const std::vector<Patch*>& nodeTs, int nodeDepth, int nodeInd)
 {
-    boost::thread* thread = NULL;
-
 
 	if (nodeDepth < _maxDepth)
 	{
@@ -118,17 +118,16 @@ void Tree::grow(const std::vector<Patch*>& nodeTs, int nodeDepth, int nodeInd)
 			//grow right branch
 			if(sizeRight > _minSamples) //Si il reste des classes et que le nb de sample > _minSamples on continue
 			{
-                _mute.lock();
-                if (_currentThreadNumber < _maxThreadNumber)
+                _pThrdManager->_mute.lock();
+                if (_pThrdManager->getCurrentNumberThreads() < _pThrdManager->getMaxNumberThreads())
                 {
-                    _currentThreadNumber++;
                     std::cout << "new threaaaad !!!!" << std::endl;
-                    _mute.unlock();
-                    thread = new boost::thread(&Tree::grow, this, setRight, nodeDepth+1, 2*nodeInd+1); //right => odd nodeInd
+                    _pThrdManager->_mute.unlock();
+                    _pThrdManager->addThread(new boost::thread(&Tree::grow, this, setRight, nodeDepth+1, 2*nodeInd+1)); //right => odd nodeInd
                 }
                 else
                 {
-                    _mute.unlock();
+                    _pThrdManager->_mute.unlock();
                     grow(setRight, nodeDepth+1, 2*nodeInd+1);//right => odd nodeInd
                 }
 			}
@@ -159,16 +158,6 @@ void Tree::grow(const std::vector<Patch*>& nodeTs, int nodeDepth, int nodeInd)
 		std::cout << "py nbLeaf " << nodeInd << std::endl;
 		this->makeLeaf(nodeTs, nodeInd);
 	}
-
-    if (thread)
-    {
-        thread->join();
-        delete thread;
-        _mute.lock();
-        std::cout << "RELEEEEEEAAAASE THE THREAD !!!" << std::endl;
-        _currentThreadNumber--;
-        _mute.unlock();
-    }
 }
 
 void Tree::extractFeatures(std::vector<Feature*>& feat, const std::vector<Patch*>& nodeTs)
@@ -268,7 +257,7 @@ void Tree::findFeature(const std::vector<Patch*>& nodeTs, std::vector<Patch*>& t
 	}
 
 
-    _mute.lock();
+    _pThrdManager->_mute.lock();
 
 	if (!feat[indexMax]->featureName().compare("Point"))//Save the feature in treeTable
 	{
@@ -285,7 +274,7 @@ void Tree::findFeature(const std::vector<Patch*>& nodeTs, std::vector<Patch*>& t
 		throw ForestException("Unknown feature !!!");
 	}
 
-    _mute.unlock();
+    _pThrdManager->_mute.unlock();
 	
 	for (int i=0 ; i<feat.size() ; i++)
 	{
@@ -302,7 +291,7 @@ void Tree::makeLeaf(const std::vector<Patch*>& nodeTs, int nodeInd)
 		if (state[0]!=0) size++;
 	}
 
-    _mute.lock();
+    _pThrdManager->_mute.lock();
 
 	_classifiedSize+=nodeTs.size();
 	std::cout << size << " "  << nodeTs.size() << std::endl;
@@ -312,7 +301,7 @@ void Tree::makeLeaf(const std::vector<Patch*>& nodeTs, int nodeInd)
 	
 	_leafNodes[nodeInd] = new Leaf(nodeTs);
 
-    _mute.unlock();
+    _pThrdManager->_mute.unlock();
 }
 
 void Tree::saveTree()

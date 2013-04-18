@@ -6,7 +6,6 @@
 #include <string>
 #include "TrainingSet.h"
 #include "Tree.h"
-#include <boost/thread/thread.hpp>
 
 class Forest
 {

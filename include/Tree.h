@@ -6,14 +6,15 @@
 #include <tinyxml.h>
 #include <sstream>
 #include <iomanip>
+#include <iostream>
+#include "ThreadManager.h"
 #include "Patch.h"
 #include "ForestEnv.h"
 #include "TrainingSet.h"
 #include "PointFeature.h"
 #include "RectFeature.h"
 #include "Leaf.h"
-#include <boost/thread/thread.hpp>
-#include <boost/thread/recursive_mutex.hpp>
+
 
 class Tree
 {
@@ -40,7 +41,10 @@ class Tree
 	
 		ForestEnv* _pForestEnv;
 		TrainingSet *_pTrainingSet; //TrainingSet
-		int _treeId;
+        int _treeId;
+
+        //For multi threading
+        ThreadManager* _pThrdManager;
 		
 		CvRNG *_pRNG;
 		int _minSamples;
@@ -54,9 +58,9 @@ class Tree
 		std::map<int, Feature*> _treeTable;
 		std::map<int, Leaf*> _leafNodes;
 
-        //For multi threading
-        int _currentThreadNumber, _maxThreadNumber;
-        boost::recursive_mutex _mute;
+
+        //int _currentThreadNumber, _maxThreadNumber;
+        //boost::recursive_mutex _mute;
 		
 		//tmp
 		int _currentDepth;

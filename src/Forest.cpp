@@ -42,14 +42,13 @@ Forest::Forest(ForestEnv* forestEnv, int dummy)
 
 Forest::~Forest()
 {
-	if (_treeVector[0] != NULL)
-	{
-		for(int i=0 ; i<_treeVector.size() ; i++)
-		{
-			delete _treeVector[i];
-		}
-	}
-	if (_pTrainingSet) delete _pTrainingSet;
+
+    for(int i=0 ; i<_treeVector.size() ; i++)
+    {
+        if (_treeVector[i]) delete _treeVector[i];
+    }
+
+    if (_pTrainingSet) delete _pTrainingSet;
 }
 
 //For training
@@ -68,6 +67,7 @@ void Forest::trainForest()
 	{
 		_treeVector[i] = new Tree(_forestEnv, _pTrainingSet, i); //Creation of Tree
 		_treeVector[i]->growTree(); //Start training
+        delete _treeVector[i];
 	}
 }
 

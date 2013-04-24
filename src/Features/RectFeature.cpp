@@ -1,7 +1,7 @@
 #include "RectFeature.h"
 
-RectFeature::RectFeature(ForestEnv *forestEnv, const std::vector<Patch*>& patchs, cv::Rect_<int>& rect1, cv::Rect_<int>& rect2) :
-    Feature(forestEnv), _rect1(rect1), _rect2(rect2)
+RectFeature::RectFeature(ForestEnv *forestEnv, ThreadManager* thread, const std::vector<Patch*>& patchs, cv::Rect_<int>& rect1, cv::Rect_<int>& rect2) :
+    Feature(forestEnv, thread), _rect1(rect1), _rect2(rect2)
 {
     _patchs = patchs;
 }

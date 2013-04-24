@@ -6,7 +6,7 @@
 class RectFeature : public Feature
 {
     public:
-        RectFeature(ForestEnv *forestEnv, const std::vector<Patch*>& patchs, cv::Rect_<int>& rect1, cv::Rect_<int>& rect2);
+        RectFeature(ForestEnv *forestEnv, ThreadManager* thread, const std::vector<Patch*>& patchs, cv::Rect_<int>& rect1, cv::Rect_<int>& rect2);
 		RectFeature(ForestEnv *forestEnv, cv::Rect_<int>& rect1, cv::Rect_<int>& rect2, int threshold);
 		RectFeature(ForestEnv *forestEnv, TiXmlElement *node);
 

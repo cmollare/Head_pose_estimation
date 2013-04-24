@@ -1,6 +1,6 @@
 #include "PointFeature.h"
 
-PointFeature::PointFeature(ForestEnv *forestEnv, const std::vector<Patch*>& patchs, cv::Point_<int>& pt1, cv::Point_<int>& pt2) : Feature(forestEnv), _pt1(pt1), _pt2(pt2)
+PointFeature::PointFeature(ForestEnv *forestEnv, ThreadManager* thread, const std::vector<Patch*>& patchs, cv::Point_<int>& pt1, cv::Point_<int>& pt2) : Feature(forestEnv, thread), _pt1(pt1), _pt2(pt2)
 {
 	_patchs = patchs;
 }

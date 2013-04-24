@@ -1,6 +1,6 @@
 #include "Feature.h"
 
-Feature::Feature(ForestEnv *forestEnv) : _pForestEnv(forestEnv)
+Feature::Feature(ForestEnv *forestEnv, ThreadManager* thread) : _pForestEnv(forestEnv), _pThreadManager(thread)
 {
 	_threshold=0;
 	_maxEntropy=0;
@@ -44,12 +44,16 @@ void Feature::findOptimalDatasetThreshold(int test)
 void Feature::getSplittedDatasets(std::vector<Patch*>& left, std::vector<Patch*>& right, double& entropy)
 {
 	left.clear(); right.clear();
+    _pThreadManager->_mute.lock();
+    left.reserve(_features.size());
+    right.reserve(_features.size());
+    _pThreadManager->_mute.unlock();
 
 	for (int feature=0 ; feature<_features.size() ; feature++)
 	{
 		//Warning ! bad alloc possibility
-		if(_features[feature]>_threshold) left.push_back(_patchs[feature]);
-		else right.push_back(_patchs[feature]);
+        if(_features.at(feature)>_threshold) left.push_back(_patchs.at(feature));
+        else right.push_back(_patchs.at(feature));
 	}
 	entropy = _maxEntropy;
 }
@@ -57,14 +61,16 @@ void Feature::getSplittedDatasets(std::vector<Patch*>& left, std::vector<Patch*>
 void Feature::splitDataset(int tr, std::vector<Patch*>& left, std::vector<Patch*>& right)
 {
 	left.clear(); right.clear();
+    _pThreadManager->_mute.lock();
 	left.reserve(_features.size());
 	right.reserve(_features.size());
+    _pThreadManager->_mute.unlock();
 
 	for (int feature=0 ; feature<_features.size() ; feature++)
 	{
 		//Warning ! bad alloc possibility
-		if(_features[feature]>tr) left.push_back(_patchs[feature]);
-		else right.push_back(_patchs[feature]);
+        if(_features.at(feature)>tr) left.push_back(_patchs.at(feature));
+        else right.push_back(_patchs.at(feature));
 	}
 }
 
@@ -77,7 +83,12 @@ double Feature::computeEntropy(std::vector<Patch*>& left, std::vector<Patch*>& r
 
 		//If one of the vector is empty => infoGain=0
 		if (left.size()==0 || right.size() == 0) return 0;
-		else stateVectorSize=left[0]->getStateVector().size();
+        else
+        {
+           // _pThreadManager->_mute.lock();
+            stateVectorSize=left.at(0)->getStateVector().size();
+           // _pThreadManager->_mute.unlock();
+        }
 
 		int vecSizes = stateVectorSize-1;
 
@@ -93,13 +104,16 @@ double Feature::computeEntropy(std::vector<Patch*>& left, std::vector<Patch*>& r
 
 		for (int i=0 ; i<left.size() ; i++)//Right mean and variance
 		{
-			std::vector<double> stateVector = left[i]->getStateVector();
-			if(stateVector[0]==0) continue;
+            //_pThreadManager->_mute.lock();
+            std::vector<double> stateVector = left.at(i)->getStateVector();
+            //_pThreadManager->_mute.unlock();
+
+            if(stateVector.at(0)==0) continue;
 
 			for (int j=0 ; j<vecSizes ; j++)
 			{
-				muLeft.at<double>(j) += (double)stateVector[j+1];
-				varLeft.at<double>(j,j) += (double)(stateVector[j+1]*stateVector[j+1]);
+                muLeft.at<double>(j) += (double)stateVector.at(j+1);
+                varLeft.at<double>(j,j) += (double)(stateVector.at(j+1)*stateVector.at(j+1));
 
 				//std::cout << varLeft.at<double>(j,j) << " " << (double)(stateVector[j]*stateVector[j]) << std::endl;
 			}
@@ -110,13 +124,16 @@ double Feature::computeEntropy(std::vector<Patch*>& left, std::vector<Patch*>& r
 
 		for (int i=0 ; i<right.size() ; i++)//Left mean and variance
 		{
-			std::vector<double> stateVector = right[i]->getStateVector();
+            //_pThreadManager->_mute.lock();
+            std::vector<double> stateVector = right.at(i)->getStateVector();
+            //_pThreadManager->_mute.unlock();
+
 			if(stateVector[0]==0) continue;
 
 			for (int j=0 ; j<vecSizes ; j++)
 			{
-				muRight.at<double>(j) += stateVector[j+1];
-				varRight.at<double>(j,j) += stateVector[j+1]*stateVector[j+1];
+                muRight.at<double>(j) += stateVector.at(j+1);
+                varRight.at<double>(j,j) += stateVector.at(j+1)*stateVector.at(j+1);
 			}
 			rightSize++;
 		}
@@ -162,16 +179,20 @@ double Feature::computeEntropy(std::vector<Patch*>& left, std::vector<Patch*>& r
 
 		for (int i=0 ; i<left.size() ; i++)//Right mean and variance
 		{
-			std::vector<double> stateVector = left[i]->getStateVector();
-			if(stateVector[0]!=0) leftSize++;
+            //_pThreadManager->_mute.lock();
+            std::vector<double> stateVector = left.at(i)->getStateVector();
+            //_pThreadManager->_mute.unlock();
+            if(stateVector.at(0)!=0) leftSize++;
 		}
 
 		if(leftSize==0) return 0;
 
 		for (int i=0 ; i<right.size() ; i++)//Left mean and variance
 		{
-			std::vector<double> stateVector = right[i]->getStateVector();
-			if(stateVector[0]!=0) rightSize++;
+            //_pThreadManager->_mute.lock();
+            std::vector<double> stateVector = right.at(i)->getStateVector();
+            //_pThreadManager->_mute.unlock();
+            if(stateVector.at(0)!=0) rightSize++;
 		}
 
 		if (rightSize==0) return 0;

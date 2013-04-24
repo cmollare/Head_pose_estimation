@@ -3,6 +3,7 @@
 ThreadManager::ThreadManager()
 {
 	_maxNumberThreads = boost::thread::hardware_concurrency();
+    _maxNumberThreads*=2;
 
     _check=1;
 	
@@ -40,7 +41,7 @@ void ThreadManager::tryJoin()
 {
 	for(;;)
 	{
-        boost::posix_time::seconds workTime(1);
+        boost::posix_time::milliseconds workTime(500);
 		boost::this_thread::sleep(workTime);
 		
         _mute.lock();
@@ -61,7 +62,7 @@ void ThreadManager::tryJoin()
                 }
                 _mute.unlock();
 
-                if ((*it)->timed_join(boost::posix_time::milliseconds(2)))
+                if ((*it)->timed_join(boost::posix_time::milliseconds(10)))
 				{
                     _mute.lock();
                     std::cout << "thread terminated" << std::endl;

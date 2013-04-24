@@ -61,13 +61,14 @@ void Tree::growTree()
 	}*/
 	//End of copy adresses of Patchs in the vector _vpPatchs for training
 	int size=0;
-	for (int i=0 ; i<_vpPatchs.size() ; i++)
-	{
-		std::vector<double> sVector = _vpPatchs[i]->getStateVector();
-		if(sVector[0] !=0) size++;
-	}
 
-	std::cout << size << " positive and " << _vpPatchs.size()-size << " negative" << std::endl;
+    for (int i=0 ; i<_vpPatchs.size() ; i++)
+    {
+        std::vector<double> sVector = _vpPatchs.at(i)->getStateVector();
+        if(sVector.at(0) !=0) size++;
+    }
+
+    std::cout << size << " positive and " << _vpPatchs.size()-size << " negative" << std::endl;
 	
 	std::cout << "Start growing Tree n°" << _treeId << std::endl;
 
@@ -163,7 +164,7 @@ void Tree::grow(const std::vector<Patch*>& nodeTs, int nodeDepth, int nodeInd)
 void Tree::extractFeatures(std::vector<Feature*>& feat, const std::vector<Patch*>& nodeTs)
 {
 	//A étendre à d'autres features (en fonction de ForestEnv)
-	cv::Rect_<int> roi = nodeTs[0]->getRoi();
+    cv::Rect_<int> roi = nodeTs.at(0)->getRoi();
 
 	std::vector<std::string> featureNames = _pForestEnv->getFeatureNames();
 	
@@ -179,7 +180,7 @@ void Tree::extractFeatures(std::vector<Feature*>& feat, const std::vector<Patch*
 				cv::Point_<int> pt1(cvRandInt(_pRNG)%roi.width, cvRandInt(_pRNG)%roi.height);
 				cv::Point_<int> pt2(cvRandInt(_pRNG)%roi.width, cvRandInt(_pRNG)%roi.height);
 
-				feat.push_back(new PointFeature(_pForestEnv, nodeTs, pt1, pt2));
+                feat.push_back(new PointFeature(_pForestEnv, _pThrdManager, nodeTs, pt1, pt2));
 				feat.back()->extractFeature();
 				//Uncomment for modified criterion
 				/*if (_currentDepth < _maxDepth/2 && (nodeTs[0].size()+nodeTs[1].size())>4*_minSamples)
@@ -216,7 +217,7 @@ void Tree::extractFeatures(std::vector<Feature*>& feat, const std::vector<Patch*
 				//std::cout << randNb.at<cv::Rect_<int> >(i) << std::endl;
 				//std::cout << rect1.x << " " << rect1.y << " " << rect1.height << " " << rect1.width << std::endl;
 
-				feat.push_back(new RectFeature(_pForestEnv, nodeTs, rect1, rect2));
+                feat.push_back(new RectFeature(_pForestEnv, _pThrdManager, nodeTs, rect1, rect2));
 				feat.back()->extractFeature();
 
 				feat.back()->findOptimalDatasetThreshold(0);
@@ -251,7 +252,7 @@ void Tree::findFeature(const std::vector<Patch*>& nodeTs, std::vector<Patch*>& t
 	{
 		for (int i=0 ; i<feat.size() ; i++)
 		{
-			delete feat[i];
+            delete feat.at(i);
 		}
 		throw ForestException("Unable to find a good feature => leaf creation");
 	}
@@ -278,17 +279,18 @@ void Tree::findFeature(const std::vector<Patch*>& nodeTs, std::vector<Patch*>& t
 	
 	for (int i=0 ; i<feat.size() ; i++)
 	{
-		delete feat[i];
+        delete feat.at(i);
 	}
 }
 
 void Tree::makeLeaf(const std::vector<Patch*>& nodeTs, int nodeInd)
 {
 	int size=0;
+
 	for (int i=0 ; i<nodeTs.size() ; i++)
 	{
-		std::vector<double> state = nodeTs[i]->getStateVector();
-		if (state[0]!=0) size++;
+        std::vector<double> state = nodeTs.at(i)->getStateVector();
+        if (state.at(0)!=0) size++;
 	}
 
     _pThrdManager->_mute.lock();

@@ -7,13 +7,14 @@
 #include <vector>
 #include <string>
 #include <tinyxml.h>
+#include "ThreadManager.h"
 
 //class ForestEnv;
 
 class Feature
 {
 	public:
-		Feature(ForestEnv *forestEnv);
+        Feature(ForestEnv *forestEnv, ThreadManager* thread=NULL);
 		
 		virtual void extractFeature()=0;
 		virtual int regression(Patch& patch)=0;
@@ -50,6 +51,8 @@ class Feature
 		std::vector<int> _features;
 		int _maxFeature, _minFeature;
 		double _maxEntropy; //Entropy calculated in function find OptimalDatasetThreshold
+
+        ThreadManager* _pThreadManager;
 };
 
 #endif

@@ -24,7 +24,7 @@ file(
 
 set(CMAKE_BUILD_TYPE Release)
 set(EXECUTABLE_OUTPUT_PATH ../bin/)
-set(CMAKE_CXX_FLAGS "-std=c++0x -g -ggdb")#active C++ 2011 standard
+set(CMAKE_CXX_FLAGS "-std=c++0x -g -ggdb -fopenmp")#active C++ 2011 standard
 
 add_library(
     random_forest

@@ -7,6 +7,7 @@
 #include <vector>
 #include <string>
 #include <tinyxml.h>
+#include <omp.h>
 
 //class ForestEnv;
 

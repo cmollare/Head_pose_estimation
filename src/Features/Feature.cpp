@@ -44,8 +44,9 @@ void Feature::findOptimalDatasetThreshold(int test)
 void Feature::getSplittedDatasets(std::vector<Patch*>& left, std::vector<Patch*>& right, double& entropy)
 {
 	left.clear(); right.clear();
+    int feature=0;
 
-	for (int feature=0 ; feature<_features.size() ; feature++)
+    for (feature=0 ; feature<_features.size() ; feature++)
 	{
 		//Warning ! bad alloc possibility
 		if(_features[feature]>_threshold) left.push_back(_patchs[feature]);
@@ -90,8 +91,11 @@ double Feature::computeEntropy(std::vector<Patch*>& left, std::vector<Patch*>& r
 		cv::Mat varLeft(vecSizes, vecSizes, CV_64FC1, cv::Scalar(0)), varRight(vecSizes, vecSizes, CV_64FC1, cv::Scalar(0)), varTot(vecSizes, vecSizes, CV_64FC1, cv::Scalar(0));
 
 		double leftSize=0, rightSize=0;
+        int i=0;
 
-		for (int i=0 ; i<left.size() ; i++)//Right mean and variance
+
+        #pragma omp parallel for shared(left, muLeft, varLeft, leftSize) private(i)
+        for (i=0 ; i<left.size() ; i++)//Right mean and variance
 		{
 			std::vector<double> stateVector = left[i]->getStateVector();
 			if(stateVector[0]==0) continue;
@@ -108,7 +112,8 @@ double Feature::computeEntropy(std::vector<Patch*>& left, std::vector<Patch*>& r
 
 		if (leftSize<2) return 0;
 
-		for (int i=0 ; i<right.size() ; i++)//Left mean and variance
+        #pragma omp parallel for shared(right, muRight, varRight, rightSize) private(i)
+        for (i=0 ; i<right.size() ; i++)//Left mean and variance
 		{
 			std::vector<double> stateVector = right[i]->getStateVector();
 			if(stateVector[0]==0) continue;

@@ -2,6 +2,7 @@
 
 Forest::Forest(ForestEnv* forestEnv)
 {
+    using std::chrono::system_clock;
 	//TODO : vérifier si le dossier existe et sinon, le créer
 	
 	_forestEnv = forestEnv;
@@ -10,7 +11,12 @@ Forest::Forest(ForestEnv* forestEnv)
 	_treeVector.resize(_forestEnv->getNbTrees());
 	for (int i=0 ; i<_treeVector.size() ; i++)
 	{
+        system_clock::time_point begin = system_clock::now();
 		_treeVector[i] = NULL;
+        system_clock::time_point end = system_clock::now();
+
+        double time = system_clock::to_time_t(end)-system_clock::to_time_t(begin);
+        std::cout << "temps : " << time << std::endl;
 	}
 	
 	// Create Tree directory

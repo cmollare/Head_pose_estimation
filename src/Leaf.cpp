@@ -11,6 +11,7 @@ Leaf::Leaf(const std::vector<Patch*>& nodeTs)
 	_meanOffsets.y = 0;
 	_varOffsets.x = 0;
 	_varOffsets.y = 0;
+    _varTrace = 0;
 	_nbPatchs = nodeTs.size();
 	double nbPatchs = 0;
 
@@ -45,6 +46,7 @@ Leaf::Leaf(const std::vector<Patch*>& nodeTs)
 		//std::cout <<  _stateVectorMean.mul(_stateVectorMean) << std::endl;
 		//std::cout << _stateVectorVariance/nodeTs.size() << std::endl;
 		_stateVectorVariance = _stateVectorVariance/nbPatchs - _stateVectorMean.mul(_stateVectorMean);
+        _varTrace = cv::sum(_stateVectorVariance)[0];
 		//std::cout << _stateVectorVariance << std::endl;
 		//std::cout << _meanOffsets << std::endl;
 		_meanOffsets.x = (double)_meanOffsets.x/nbPatchs;
@@ -73,6 +75,7 @@ void Leaf::saveLeaf(TiXmlElement *parentNode, int depth)
 	leaf->SetAttribute("meanOffsetY", _meanOffsets.y);
 	leaf->SetDoubleAttribute("varianceOffsetX", _varOffsets.x);
 	leaf->SetDoubleAttribute("varianceOffsetY", _varOffsets.y);
+    leaf->SetDoubleAttribute("varianceTrace", _varTrace);
 	parentNode->LinkEndChild(leaf);
 
 	//Do not write the class
@@ -95,6 +98,7 @@ void Leaf::loadLeaf(TiXmlElement *node)
 	node->QueryIntAttribute("meanOffsetY", &_meanOffsets.y);
 	node->QueryDoubleAttribute("varianceOffsetX", &_varOffsets.x);
 	node->QueryDoubleAttribute("varianceOffsetY", &_varOffsets.y);
+    node->QueryDoubleAttribute("varianceTrace", &_varTrace);
 
 	_stateVectorMean = cv::Mat(nbStates, 1, CV_64F, cv::Scalar_<double>(0));
 	_stateVectorVariance = cv::Mat(nbStates, 1, CV_64F, cv::Scalar_<double>(0));

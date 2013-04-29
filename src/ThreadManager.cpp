@@ -3,7 +3,9 @@
 ThreadManager::ThreadManager()
 {
 	_maxNumberThreads = boost::thread::hardware_concurrency();
-    _maxNumberThreads*=2;
+    _currentThreads.reserve(_maxNumberThreads+2);//au cas où
+    //_maxNumberThreads = 0;
+    //_maxNumberThreads*=2;
 
     _check=1;
 	
@@ -41,7 +43,7 @@ void ThreadManager::tryJoin()
 {
 	for(;;)
 	{
-        boost::posix_time::milliseconds workTime(500);
+        boost::posix_time::milliseconds workTime(150);
 		boost::this_thread::sleep(workTime);
 		
         _mute.lock();

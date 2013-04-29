@@ -140,7 +140,7 @@ void Tree::grow(const std::vector<Patch*>& nodeTs, int nodeDepth, int nodeInd)
 			//grow left branch
 			if(sizeLeft > _minSamples) //Si il reste des classes et que le nb de sample > _minSamples on continue
 			{
-				grow(setLeft, nodeDepth+1, 2*nodeInd+2); //left => even nodeInd
+                grow(setLeft, nodeDepth+1, 2*nodeInd+2); //left => even nodeInd
 			}
 			else
 			{
@@ -229,7 +229,7 @@ void Tree::extractFeatures(std::vector<Feature*>& feat, const std::vector<Patch*
 
 void Tree::findFeature(const std::vector<Patch*>& nodeTs, std::vector<Patch*>& tsLeft, std::vector<Patch*>& tsRight, int nodeInd)
 {
-	std::vector<Feature*> feat;
+    std::vector<Feature*> feat;
 	this->extractFeatures(feat, nodeTs);
 	std::vector<Patch*> tmpLeft, tmpRight;
 	double tmpEntropy=0, maxEntropy=0;

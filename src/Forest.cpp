@@ -62,13 +62,21 @@ void Forest::initTrainingSet()
 
 void Forest::trainForest()
 {
-	std::cout << "py nbTree " << _treeVector.size() << std::endl;
-	for(int i=0 ; i<_treeVector.size() ; i++)
-	{
-		_treeVector[i] = new Tree(_forestEnv, _pTrainingSet, i); //Creation of Tree
-		_treeVector[i]->growTree(); //Start training
+    using std::chrono::system_clock;
+
+    std::cout << "py nbTree " << _treeVector.size() << std::endl;
+    for(int i=0 ; i<_treeVector.size() ; i++)
+    {
+        system_clock::time_point begin = system_clock::now();
+        _treeVector[i] = new Tree(_forestEnv, _pTrainingSet, i); //Creation of Tree
+        _treeVector[i]->growTree(); //Start training
         delete _treeVector[i];
-	}
+        _treeVector[i]=NULL;
+        system_clock::time_point end = system_clock::now();
+
+        double time = system_clock::to_time_t(end)-system_clock::to_time_t(begin);
+        std::cout << "temps : " << time << std::endl;
+    }
 }
 
 //End of training methods

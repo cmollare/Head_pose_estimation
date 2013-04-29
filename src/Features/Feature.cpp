@@ -29,14 +29,21 @@ void Feature::findOptimalDatasetThreshold(int test)
 		this->splitDataset(tr, left, right);
 		
 		//criterion to decide what threshold to keep
-		currEntropy = computeEntropy(left, right, 0) + computeEntropy(left, right, 1);
-		//currEntropy = computeEntropy(left, right, 1);
+        currEntropy = computeEntropy(left, right, 1);
+        double tempcurrEntropy = computeEntropy(left, right, 0);
+
+        currEntropy += tempcurrEntropy;
 
 		if (currEntropy > _maxEntropy || i==0)
 		{
 			_threshold=tr;
 			_maxEntropy=currEntropy;
 		}
+        else if (i==0)
+        {
+            _threshold=tr;
+            _maxEntropy=currEntropy;
+        }
 		
 	}
 }
@@ -165,11 +172,22 @@ double Feature::computeEntropy(std::vector<Patch*>& left, std::vector<Patch*>& r
 		//End of mean and variance computation
 		//std::cout << varTot << std::endl;
 		//Information gain processing
-		infoGain = log(cv::trace(varTot)[0]) - ratioLeft*log(cv::trace(varLeft)[0]) - ratioRight*log(cv::trace(varRight)[0]);
+        /*double determinantTot = cv::determinant(varTot);
+        double determinantLeft = cv::determinant(varLeft);
+        double determinantRight = cv::determinant(varRight);
+
+        if (determinantTot && determinantLeft && determinantRight)
+            infoGain = log(determinantTot) - ratioLeft*log(determinantRight) - ratioRight*log(determinantLeft);
+        else
+            return -1;*/
+
+        infoGain = log(cv::trace(varTot)[0]) - ratioLeft*log(cv::trace(varLeft)[0]) - ratioRight*log(cv::trace(varRight)[0]);
 		/*std::cout << varTot << std::endl;
 		std::cout << varLeft << std::endl;
 		std::cout << varRight << std::endl;
 		std::cout << infoGain << std::endl;*/
+
+        //std::cout << "critere 1 : " << infoGain << std::endl;
 		return infoGain;
 	}
 	else if(test==1)//Test classique
@@ -179,20 +197,14 @@ double Feature::computeEntropy(std::vector<Patch*>& left, std::vector<Patch*>& r
 
 		for (int i=0 ; i<left.size() ; i++)//Right mean and variance
 		{
-            //_pThreadManager->_mute.lock();
-            std::vector<double> stateVector = left.at(i)->getStateVector();
-            //_pThreadManager->_mute.unlock();
-            if(stateVector.at(0)!=0) leftSize++;
+            if(left.at(i)->getStateVector().at(0)!=0) leftSize++;
 		}
 
 		if(leftSize==0) return 0;
 
 		for (int i=0 ; i<right.size() ; i++)//Left mean and variance
 		{
-            //_pThreadManager->_mute.lock();
-            std::vector<double> stateVector = right.at(i)->getStateVector();
-            //_pThreadManager->_mute.unlock();
-            if(stateVector.at(0)!=0) rightSize++;
+            if(right.at(i)->getStateVector().at(0)!=0) rightSize++;
 		}
 
 		if (rightSize==0) return 0;
@@ -210,21 +222,28 @@ double Feature::computeEntropy(std::vector<Patch*>& left, std::vector<Patch*>& r
 		p = (right.size()-rightSize)/double(right.size());
 		if (p>0) entropyRight += p*log(p);
 
-		/*for(int label=0 ; label<left.size() ; label++)
-		{
-			double p = double(left[label].size())/sizeLeft;
-			if(p>0) entropyLeft += p*log(p);
-		}
+        double entropyLR=0;
+        double p1=double(right.size())/double(left.size()+right.size());
+        double p2=double(left.size())/double(left.size()+right.size());
+        if(p1>0) entropyLR = -p1*log(p1);
+        if(p2>0) entropyLR -= p2*log(p2);
 
-		for(int label=0 ; label<right.size() ; label++)
-		{
-			double p = double(right[label].size())/sizeRight;
-			if(p>0) entropyRight += p*log(p);
-		}*/
-		totalEntropy = -(double(left.size()*entropyLeft) + double(right.size()*entropyRight))/double(left.size()+right.size());
-		//std::cout << left.size() << " " << right.size() << std::endl;
+
+
+        //totalEntropy = (double(left.size()*entropyLeft) + double(right.size()*entropyRight))/double(left.size()+right.size());
+
+
+        totalEntropy = (double(entropyLeft) + double(entropyRight));
+        /*std::cout << "***********" << std::endl;
+        std::cout << entropyLR << std::endl;*/
+        totalEntropy+=2*entropyLR;
+       /* std::cout << totalEntropy << std::endl;
+        std::cout << left.size() << " " << right.size() << std::endl;
+        std::cout << leftSize << " " << rightSize << std::endl;
+        std::cout << "***********" << std::endl;*/
 		//std::cout << totalEntropy << std::endl;
-		return totalEntropy;
+        //std::cout << "critere 2 : " << totalEntropy << std::endl;
+        return totalEntropy;
 	}
 	/*else if(test==1)// CRITERE A TESTER !!!!
 	{

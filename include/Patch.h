@@ -17,7 +17,7 @@ class Patch
 		int getIntPatchRect(cv::Rect_<int>& roi);//Extract an roi from the integral patch
 		cv::Rect_<int> getRoi();
 		cv::Point_<int> getOffset();
-		std::vector<double> getStateVector();
+        std::vector<double>& getStateVector();
 		std::vector<std::string> getSVNames();
 	private:
 		std::vector<cv::Mat> _patchs;//0 : original patch. 1 : integral patch

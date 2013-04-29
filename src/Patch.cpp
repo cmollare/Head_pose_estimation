@@ -33,7 +33,7 @@ cv::Point_<int> Patch::getOffset()
 	return _patchOffset;
 }
 
-std::vector<double> Patch::getStateVector()
+std::vector<double>& Patch::getStateVector()
 {
 	return _stateVector;
 }

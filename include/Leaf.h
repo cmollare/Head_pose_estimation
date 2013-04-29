@@ -44,12 +44,18 @@ class Leaf
 			return _conf;
 		}
 
+        inline double getTrace()
+        {
+            return _varTrace;
+        }
+
 	protected:
 		std::vector<std::string> _stateVectorNames;
 		cv::Point_<int> _meanOffsets;
 		cv::Point_<double> _varOffsets;
 		cv::Mat _stateVectorMean;
 		cv::Mat _stateVectorVariance;
+        double _varTrace; //Trace of the variances of state vector
 		int _nbPatchs;
 		double _conf;
 

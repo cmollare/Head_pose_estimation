@@ -109,14 +109,13 @@ void ForestDetector::detect(cv::Mat& image, std::string imageName)//deuxième pa
 
 
 				//std::cout << offsetMeans.back() << " " << offsetVar.back() << " " << nbPatchs.back() << std::endl;
-
 				cv::Point_<int> offset(-offsetMeans.back().x+patchWidth/2+x, -offsetMeans.back().y+patchHeight/2+y);
 				if (offset.x >= 0 && offset.x < width && offset.y >= 0 && offset.y < height)
 				{
                     offset.x = offset.x/pas;
                     offset.y = offset.y/pas;
 					//if ((offsetVar.back().x <= 200) && (offsetVar.back().y <= 200))
-                    if (conf > 0.60)
+                    if ((conf > 0.50) && (detectedLeaf[i]->getTrace() < 1000))
                     {
                         //result.at<float>(offset) += 1.*float(1./(sqrt(offsetVar.back().x*offsetVar.back().x+offsetVar.back().y*offsetVar.back().y)));
                         result.at<float>(offset) += conf;
@@ -125,7 +124,8 @@ void ForestDetector::detect(cv::Mat& image, std::string imageName)//deuxième pa
                         //result.at<float>(offset) += 1.*float(nbPatchs.back()/sqrt(offsetVar.back().x*offsetVar.back().x+offsetVar.back().y*offsetVar.back().y));
                         //roll += meanSV.at<double>(6)*conf;
                         denom+=conf;
-                        test+=meanSV.at<double>(4);
+                        test+=conf*meanSV.at<double>(4);
+                        //std::cout << "cooooooooonf : " << test*20 << std::endl;
                         angle.at<double>(y/pas, x/pas) = test/denom;
                         //if (test > maxAngle) maxAngle = test;
                         //if (test < minAngle) minAngle = test;

@@ -24,7 +24,7 @@ class Leaf
 			return _varOffsets;
 		}
 
-		inline cv::Mat getSVMean()
+		inline cv::Mat& getSVMean()
 		{
 			return _stateVectorMean;
 		}

@@ -70,7 +70,7 @@ void Leaf::saveLeaf(TiXmlElement *parentNode, int depth)
 	leaf->SetAttribute("id", depth);
 	leaf->SetAttribute("nbPatchs", _nbPatchs);
 	leaf->SetDoubleAttribute("conf", _conf);
-	leaf->SetAttribute("nbStates", (int)_stateVectorNames.size());
+	leaf->SetAttribute("nbStates", (int)(_stateVectorNames.size()-1));
 	leaf->SetAttribute("meanOffsetX", _meanOffsets.x);
 	leaf->SetAttribute("meanOffsetY", _meanOffsets.y);
 	leaf->SetDoubleAttribute("varianceOffsetX", _varOffsets.x);
@@ -90,7 +90,7 @@ void Leaf::saveLeaf(TiXmlElement *parentNode, int depth)
 
 void Leaf::loadLeaf(TiXmlElement *node)
 {
-	int nbStates=0, i=1;
+	int nbStates=0, i=0;
 	node->QueryIntAttribute("nbPatchs", &_nbPatchs);
 	node->QueryDoubleAttribute("conf", &_conf);
 	node->QueryIntAttribute("nbStates", &nbStates);

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE QtCreatorProject>
-<!-- Written by Qt Creator 2.4.1, 2013-04-29T17:38:20. -->
+<!-- Written by Qt Creator 2.4.1, 2013-05-06T13:35:26. -->
 <qtcreator>
  <data>
   <variable>ProjectExplorer.Project.ActiveTarget</variable>
@@ -14,7 +14,7 @@
    <valuemap type="QVariantMap" key="EditorConfiguration.CodeStyle.0">
     <value type="QString" key="language">Cpp</value>
     <valuemap type="QVariantMap" key="value">
-     <value type="QString" key="CurrentPreferences">CppGlobal</value>
+     <value type="QString" key="CurrentPreferences">qt2</value>
     </valuemap>
    </valuemap>
    <valuemap type="QVariantMap" key="EditorConfiguration.CodeStyle.1">

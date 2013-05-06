@@ -23,7 +23,22 @@ void ForestDetector::detect(std::string folder)
 	unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
     //std::shuffle (vec.begin(), vec.end(), std::default_random_engine(seed));
 
-	for (std::vector<fs::path>::const_iterator it=vec.begin() ; it != vec.end() ; ++it)
+	ETHZParser dbParser(folder);
+	std::vector<cv::Point_<int> > centers;
+	std::vector<std::vector<double> > groundTruth;
+	std::vector<std::string> paths;
+	dbParser.getDatabase(centers, groundTruth, paths);
+
+	for (int i=0 ; i<groundTruth.size() ; i++)
+	{
+		fs::path p(paths.at(i));
+		cv::Mat image = cv::imread(paths.at(i));
+		std::cout << paths.at(i) << std::endl;
+		std::cout << "gt : " << groundTruth.at(i).at(4) << " " << groundTruth.at(i).at(5) << " " << groundTruth.at(i).at(6) << std::endl;
+		this->detect(image, p.parent_path().filename().string() + p.filename().string());
+	}
+
+	/*for (std::vector<fs::path>::const_iterator it=vec.begin() ; it != vec.end() ; ++it)
 	{
 		std::cout << *it << std::endl;
 		if(it->string().find(".png") != std::string::npos)//Verify that it is an image
@@ -32,7 +47,7 @@ void ForestDetector::detect(std::string folder)
 			this->detect(image, it->parent_path().filename().string() + it->filename().string());
 			//break;
 		}
-	}
+	}*/
 }
 
 void ForestDetector::detect(cv::Mat& image, std::string imageName)//deuxième paramètre peut-être à supprimer
@@ -50,7 +65,7 @@ void ForestDetector::detect(cv::Mat& image, std::string imageName)//deuxième pa
 	unsigned int nbPatch = (height-patchHeight)*(width-patchWidth);
 	
 	float currentMax=0;
-    double pas=2;
+	double pas=2;
 	
 	//std::vector<Patch*> vecPatch(nbPatch);
     cv::Mat result = cv::Mat::zeros(image.size().height/pas, image.size().width/pas, CV_32F);
@@ -65,6 +80,9 @@ void ForestDetector::detect(cv::Mat& image, std::string imageName)//deuxième pa
     double roll=0;
     double meanRoll=0;
     double minAngle=0, maxAngle=0;
+
+    std::vector<Leaf*> detectionVotes;
+	std::vector<cv::Mat> detectionMeans;
 	
     for (int x=0 ; x < width-patchWidth ; x+=pas)//cols
 	{
@@ -103,7 +121,7 @@ void ForestDetector::detect(cv::Mat& image, std::string imageName)//deuxième pa
 				offsetMeans.push_back(detectedLeaf[i]->getMeanOffsets());
 				offsetVar.push_back(detectedLeaf[i]->getVarOffsets());
 				nbPatchs.push_back(detectedLeaf[i]->getNumberPatchs());
-                meanSV = detectedLeaf[i]->getSVMean();
+				meanSV = detectedLeaf[i]->getSVMean().clone();
                 conf = detectedLeaf[i]->getConf();
 
 
@@ -115,9 +133,13 @@ void ForestDetector::detect(cv::Mat& image, std::string imageName)//deuxième pa
                     offset.x = offset.x/pas;
                     offset.y = offset.y/pas;
 					//if ((offsetVar.back().x <= 200) && (offsetVar.back().y <= 200))
-                    if ((conf > 0.50) && (detectedLeaf[i]->getTrace() < 1000))
+					if ((conf == 1) && (detectedLeaf[i]->getTrace() < 500))
                     {
                         //result.at<float>(offset) += 1.*float(1./(sqrt(offsetVar.back().x*offsetVar.back().x+offsetVar.back().y*offsetVar.back().y)));
+                        detectionVotes.push_back(detectedLeaf[i]);
+						detectionMeans.push_back(detectedLeaf[i]->getSVMean().clone());
+						detectionMeans.back().at<double>(0) = offset.x;
+						detectionMeans.back().at<double>(1) = offset.y;
                         result.at<float>(offset) += conf;
                         //result.at<float>(offset) += detectedLeaf[i]->getNumberPatchs();
                         //result.at<float>(offset) += 1.*float(nbPatchs.back()/sqrt(offsetVar.back().x*offsetVar.back().y));
@@ -131,6 +153,10 @@ void ForestDetector::detect(cv::Mat& image, std::string imageName)//deuxième pa
                         //if (test < minAngle) minAngle = test;
 
                         //meanRoll += conf;
+                    }
+                    else
+                    {
+                        angle.at<double>(y/pas, x/pas) = -100;
                     }
                     if (result.at<float>(offset) > currentMax) currentMax=result.at<float>(offset);
 				}
@@ -177,7 +203,11 @@ void ForestDetector::detect(cv::Mat& image, std::string imageName)//deuxième pa
 			//}*/
 		}
 	}
-	std::cout << currentMax << std::endl;
+
+	MeanShift ms(detectionMeans);
+	cv::Mat mean;
+	ms.getMaxCluster(detectionMeans, mean);
+
 	//cv::Mat imageToSave = result/currentMax;
 	//cv::imwrite("../output/"+imageName, result);
 
@@ -186,7 +216,7 @@ void ForestDetector::detect(cv::Mat& image, std::string imageName)//deuxième pa
 	result=result/currentMax*255;
     result.convertTo(result, CV_8U);
 
-    std::cout << minAngle << " " << maxAngle-minAngle << std::endl;
+    //std::cout << "angle : " << angle << std::endl;
     angle=(angle+22)/45*255;
     angle.convertTo(angle, CV_8U);
     cv::applyColorMap(angle, angle, cv::COLORMAP_JET);
@@ -194,12 +224,14 @@ void ForestDetector::detect(cv::Mat& image, std::string imageName)//deuxième pa
 
 	//cv::Rect rect(result.cols/2-50, result.rows/2-50, 50, 50);
 
-    cv::RotatedRect rotatedRect(cv::Point2f(result.cols/pas-50/pas, result.rows/pas), cv::Size2f(50/pas, 50/pas), 0);
+	/*cv::RotatedRect rotatedRect(cv::Point2f(result.cols/pas-50/pas, result.rows/pas), cv::Size2f(50/pas, 50/pas), 0);
     for (int i=0 ; i<2 ; i++)
 	{
 		cv::Rect rect = rotatedRect.boundingRect();
 		rotatedRect = cv::CamShift(result, rect, cv::TermCriteria(cv::TermCriteria::COUNT + cv::TermCriteria::EPS, 10, 1));
-	}
+	}*/
+	cv::RotatedRect rotatedRect(cv::Point2f(mean.at<double>(0), mean.at<double>(1)), cv::Size2f(100/pas, 100/pas), 0);
+	std::cout << mean.at<double>(3) << " " << mean.at<double>(4) << " " << mean.at<double>(5) << std::endl;
 
 	cv::Mat imageToSave=result.clone();
 	cv::ellipse(imageToSave, rotatedRect, cv::Scalar_<int>(0,255,0), 2);
@@ -207,8 +239,6 @@ void ForestDetector::detect(cv::Mat& image, std::string imageName)//deuxième pa
     rotatedRect.size.height = rotatedRect.size.height*pas;
     rotatedRect.size.width = rotatedRect.size.width*pas;
     rotatedRect.angle = roll/meanRoll;
-
-    std::cout << "angle : " << rotatedRect.angle << std::endl;
 
     //cv::rectangle(image, rotatedRect.boundingRect(), cv::Scalar_<int>(125,255,125), 2);
     cv::ellipse(image, rotatedRect, cv::Scalar_<int>(125,255,125), 2);
@@ -219,6 +249,6 @@ void ForestDetector::detect(cv::Mat& image, std::string imageName)//deuxième pa
     cv::imshow("detection", image);
 	cv::imshow("lol", imageToSave);
 
-	cv::waitKey(50);
+	cv::waitKey(5000);
 	
 }

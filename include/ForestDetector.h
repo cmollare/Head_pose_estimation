@@ -3,6 +3,7 @@
 
 #include "Forest.h"
 #include "Patch.h"
+#include "MeanShift.h"
 #include <boost/filesystem.hpp>
 #include <vector>
 #include <algorithm>

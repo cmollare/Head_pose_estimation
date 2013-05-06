@@ -10,6 +10,7 @@ ETHZParser::ETHZParser(std::string root) : DatabaseParser(), _rootPath(root)
 	_vStateVectorNames.push_back("pitch");
 	_vStateVectorNames.push_back("roll");
 
+	//To be put in the xml conf file
 	_templateSize.height = 150;
 	_templateSize.width = 150;
 

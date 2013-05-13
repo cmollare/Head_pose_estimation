@@ -125,8 +125,8 @@ void TrainingSet::extractPatches()
 	for (int i=0 ; i<_vSVParamsName.size() ; i++) if (!_vSVParamsName[i].compare("x")) x=i;
 	for (int i=0 ; i<_vSVParamsName.size() ; i++) if (!_vSVParamsName[i].compare("y")) y=i;
 
-    //for (int imgNum=0 ; imgNum<_vPaths.size() ; imgNum++)
-    for (int imgNum=0 ; imgNum<600 ; imgNum++)
+	//for (int imgNum=0 ; imgNum<_vPaths.size() ; imgNum++)
+	for (int imgNum=0 ; imgNum<2000 ; imgNum++)
 	{
 		cv::Mat img = cv::imread(_vPaths[imgNum]);
 		cv::cvtColor(img, img, CV_RGB2GRAY);// Only gray images
@@ -165,7 +165,9 @@ void TrainingSet::extractPatches()
 			_vGroundTruth[imgNum][3] = cv::randu<double>();
 
 			patchs.push_back(img(roi).clone());
-			patchs.push_back(sum(roiInt).clone());// patch of integral image
+			patchs.push_back(sum(roiInt).clone());// patch of integral image//*/
+			/*patchs.push_back(img(roi));
+			patchs.push_back(sum(roiInt));// patch of integral image//*/
 
 			_vFeatures.push_back(new Patch(patchs, patchOffset, roi, _vGroundTruth[imgNum], _vSVParamsName)); //Store the patch into the trainingSet
 		}

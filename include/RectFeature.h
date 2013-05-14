@@ -6,11 +6,11 @@
 class RectFeature : public Feature
 {
     public:
-        RectFeature(ForestEnv *forestEnv, ThreadManager* thread, const std::vector<Patch*>& patchs, cv::Rect_<int>& rect1, cv::Rect_<int>& rect2);
+		RectFeature(ForestEnv *forestEnv, ThreadManager* thread, const std::vector<Patch*>& patchs, cv::Rect_<int>& rect1, cv::Rect_<int>& rect2);
 		RectFeature(ForestEnv *forestEnv, cv::Rect_<int>& rect1, cv::Rect_<int>& rect2, int threshold);
 		RectFeature(ForestEnv *forestEnv, TiXmlElement *node);
 
-        virtual void extractFeature();
+		virtual void extractFeature(int patchNum, cv::Mat& image);
 		virtual int regression(Patch& patch);
         virtual void saveFeature(TiXmlElement *node);
         virtual void loadFeature(TiXmlElement *node);

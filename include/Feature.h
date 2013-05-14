@@ -16,7 +16,7 @@ class Feature
 	public:
         Feature(ForestEnv *forestEnv, ThreadManager* thread=NULL);
 		
-		virtual void extractFeature()=0;
+		virtual void extractFeature(int patchNum, cv::Mat& image)=0;
 		virtual int regression(Patch& patch)=0;
 
 		virtual void findOptimalDatasetThreshold(int test);
@@ -47,7 +47,7 @@ class Feature
 		ForestEnv* _pForestEnv;
 		CvRNG* _pRNG;
 		int _threshold;
-		std::vector<Patch*> _patchs;
+		std::vector<Patch*>* _patchs;
 		std::vector<int> _features;
 		int _maxFeature, _minFeature;
 		double _maxEntropy; //Entropy calculated in function find OptimalDatasetThreshold

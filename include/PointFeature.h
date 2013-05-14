@@ -6,10 +6,10 @@
 class PointFeature : public Feature
 {
 	public:
-        PointFeature(ForestEnv *forestEnv, ThreadManager* thread, const std::vector<Patch*>& patchs, cv::Point_<int>& pt1, cv::Point_<int>& pt2);
+		PointFeature(ForestEnv *forestEnv, ThreadManager* thread, const std::vector<Patch*>& patchs, cv::Point_<int>& pt1, cv::Point_<int>& pt2);
 		PointFeature(ForestEnv *forestEnv, cv::Point_<int>& pt1, cv::Point_<int>& pt2, int threshold);
 		PointFeature(ForestEnv *forestEnv, TiXmlElement *node);
-		virtual void extractFeature();
+		virtual void extractFeature(int patchNum, cv::Mat& image);
 		virtual void saveFeature(TiXmlElement *node);
 		virtual void loadFeature(TiXmlElement *node);
 		inline virtual cv::Point_<int>& getPoint1()

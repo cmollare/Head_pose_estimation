@@ -2,7 +2,7 @@
 
 PointFeature::PointFeature(ForestEnv *forestEnv, ThreadManager* thread, const std::vector<Patch*>& patchs, cv::Point_<int>& pt1, cv::Point_<int>& pt2) : Feature(forestEnv, thread), _pt1(pt1), _pt2(pt2)
 {
-	_patchs = patchs;
+	_patchs = const_cast<std::vector<Patch*>*>(&patchs);
 }
 
 PointFeature::PointFeature(ForestEnv *forestEnv, cv::Point_<int>& pt1, cv::Point_<int>& pt2, int threshold) : Feature(forestEnv), _pt1(pt1), _pt2(pt2)
@@ -19,13 +19,18 @@ PointFeature::PointFeature(ForestEnv *forestEnv, TiXmlElement *node) : Feature(f
 	this->loadFeature(node);
 }
 
-void PointFeature::extractFeature()
+void PointFeature::extractFeature(int patchNum, cv::Mat& image)
 {
 	//Memory allocation for result of feature extraction
-	_features.reserve(_patchs.size()); //Feature is the difference between two points
+	_features.reserve(_patchs->size()); //Feature is the difference between two points
+
+	//extraction of a particular patch
+	_features.push_back((*_patchs)[patchNum]->getOriginPatchPoint(image, _pt1) - (*_patchs)[patchNum]->getOriginPatchPoint(image, _pt2));
+	if(_features[patchNum] > _maxFeature || (patchNum==0)) _maxFeature = _features[patchNum];
+	else if(_features[patchNum] < _minFeature || (patchNum==0)) _minFeature = _features[patchNum];
 	
 	//Feature extraction
-	for (int patch=0 ; patch<_patchs.size() ; patch++)
+	/*for (int patch=0 ; patch<_patchs.size() ; patch++)
 	{
 		//Extract the feature (difference beetween two points)
 		_features.push_back(_patchs[patch]->getOriginPatchPoint(_pt1) - _patchs[patch]->getOriginPatchPoint(_pt2));
@@ -33,7 +38,7 @@ void PointFeature::extractFeature()
 		//Test to find max and min values
 		if(_features[patch] > _maxFeature || (patch==0)) _maxFeature = _features[patch];
 		else if(_features[patch] < _minFeature || (patch==0)) _minFeature = _features[patch];
-	}
+	}*/
 }
 
 void PointFeature::saveFeature(TiXmlElement *node)

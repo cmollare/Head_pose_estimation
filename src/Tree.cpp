@@ -168,6 +168,7 @@ void Tree::extractFeatures(std::vector<Feature*>& feat, const std::vector<Patch*
 
 	std::vector<std::string> featureNames = _pForestEnv->getFeatureNames();
 	
+	//Allocate features
 	feat.reserve(_numPotentialFeatures*featureNames.size());
 	for (int featInd=0 ; featInd < featureNames.size() ; featInd++)
 	{
@@ -181,7 +182,7 @@ void Tree::extractFeatures(std::vector<Feature*>& feat, const std::vector<Patch*
 				cv::Point_<int> pt2(cvRandInt(_pRNG)%roi.width, cvRandInt(_pRNG)%roi.height);
 
                 feat.push_back(new PointFeature(_pForestEnv, _pThrdManager, nodeTs, pt1, pt2));
-				feat.back()->extractFeature();
+				//feat.back()->extractFeature();
 				//Uncomment for modified criterion
 				/*if (_currentDepth < _maxDepth/2 && (nodeTs[0].size()+nodeTs[1].size())>4*_minSamples)
 				{
@@ -191,7 +192,7 @@ void Tree::extractFeatures(std::vector<Feature*>& feat, const std::vector<Patch*
 				{
 					feat[i]->findOptimalDatasetThreshold(0);
 				}*/
-				feat.back()->findOptimalDatasetThreshold(0);
+				//feat.back()->findOptimalDatasetThreshold(0);
 			}
 		}
 		else if (!featureNames[featInd].compare("Rect"))
@@ -218,12 +219,37 @@ void Tree::extractFeatures(std::vector<Feature*>& feat, const std::vector<Patch*
 				//std::cout << rect1.x << " " << rect1.y << " " << rect1.height << " " << rect1.width << std::endl;
 
                 feat.push_back(new RectFeature(_pForestEnv, _pThrdManager, nodeTs, rect1, rect2));
-				feat.back()->extractFeature();
+				//feat.back()->extractFeature();
 
-				feat.back()->findOptimalDatasetThreshold(0);
+				//feat.back()->findOptimalDatasetThreshold(0);
 			}
 		}
 		else throw ForestException("Feature Unkown");
+	}
+
+	//extract features
+	std::string previousPath="";
+	cv::Mat img;
+	for (int i=0 ; i < nodeTs.size() ; i++)
+	{
+		std::string imagePath = nodeTs.at(i)->getImagePath();
+		if (imagePath.compare(previousPath))
+		{
+			previousPath = imagePath;
+			img.release();
+			img = cv::imread(previousPath, CV_LOAD_IMAGE_GRAYSCALE);
+		}
+
+		for (int featInd=0 ; featInd < feat.size() ; featInd++)
+		{
+			feat.at(featInd)->extractFeature(i, img);
+		}
+	}
+
+	//Find thresholds
+	for (int featInd=0 ; featInd < feat.size() ; featInd++)
+	{
+		feat.at(featInd)->findOptimalDatasetThreshold(0);
 	}
 }
 

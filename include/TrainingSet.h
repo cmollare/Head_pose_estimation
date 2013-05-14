@@ -50,19 +50,14 @@ class TrainingSet
 		std::vector<std::string> _vPaths;
 		cv::Size_<int> _templateSize;
 		std::vector<cv::Point_<int> > _vCenters;
+
+		//A supprimer
 		std::vector<Patch*> _vFeatures;
 
 		int _foldNumber;
 		int _currentTestFolder;
 
 
-		// A supprimer
-		//std::vector<std::vector<Patch> > _features;
-		//std::vector<std::vector<std::string> > _dbPathes;
-		//std::vector<std::vector<cv::Point_<int> > > _centers;//Used only during the db extraction
-		//int _numLabels;
-
-		//std::map<int, std::string> _mapClassIdToName;//*/
 };
 
 #endif

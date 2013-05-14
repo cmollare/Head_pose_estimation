@@ -125,14 +125,14 @@ void TrainingSet::extractPatches()
 	for (int i=0 ; i<_vSVParamsName.size() ; i++) if (!_vSVParamsName[i].compare("x")) x=i;
 	for (int i=0 ; i<_vSVParamsName.size() ; i++) if (!_vSVParamsName[i].compare("y")) y=i;
 
-	//for (int imgNum=0 ; imgNum<_vPaths.size() ; imgNum++)
-	for (int imgNum=0 ; imgNum<2000 ; imgNum++)
+	for (int imgNum=0 ; imgNum<_vPaths.size() ; imgNum++)
+	//for (int imgNum=0 ; imgNum<6000 ; imgNum++)
 	{
 		cv::Mat img = cv::imread(_vPaths[imgNum]);
-		cv::cvtColor(img, img, CV_RGB2GRAY);// Only gray images
+		//cv::cvtColor(img, img, CV_RGB2GRAY);// Only gray images
 		//std::cout << img.channels() << std::endl;
-		cv::Mat sum;
-		cv::integral(img, sum, CV_32S); //compute integral image
+		//cv::Mat sum;
+		//cv::integral(img, sum, CV_32S); //compute integral image
 
 
 		//CvMat* locations = cvCreateMat(nbPatch, 1, CV_32SC2);
@@ -152,11 +152,11 @@ void TrainingSet::extractPatches()
 		//Extract positive patchs
 		for (int patch=0 ; patch < nbPatch ; patch++)
 		{
-			std::vector<cv::Mat> patchs;
+			//std::vector<cv::Mat> patchs;
 			cv::Point_<int> pt = locations.at<cv::Point_<int> >(patch);
 
 			cv::Rect_<int> roi(pt.x, pt.y, _width, _height); //patch
-			cv::Rect_<int> roiInt(pt.x, pt.y, _width+1, _height+1); //patch extended for integral image (1 line and col of zeros)
+			//cv::Rect_<int> roiInt(pt.x, pt.y, _width+1, _height+1); //patch extended for integral image (1 line and col of zeros)
 			cv::Point_<int> patchOffset(pt.x + (int)(_width/2) - _vCenters[imgNum].x, pt.y + (int)(_height/2) - _vCenters[imgNum].y); //patch Center
 
 			_vGroundTruth[imgNum][0] = 1; //Class positive
@@ -164,12 +164,12 @@ void TrainingSet::extractPatches()
 			_vGroundTruth[imgNum][2] = pt.y + (int)(_height/2) - _vCenters[imgNum].y;
 			_vGroundTruth[imgNum][3] = cv::randu<double>();
 
-			patchs.push_back(img(roi).clone());
-			patchs.push_back(sum(roiInt).clone());// patch of integral image//*/
+			//patchs.push_back(img(roi).clone());
+			//patchs.push_back(sum(roiInt).clone());// patch of integral image//*/
 			/*patchs.push_back(img(roi));
 			patchs.push_back(sum(roiInt));// patch of integral image//*/
 
-			_vFeatures.push_back(new Patch(patchs, patchOffset, roi, _vGroundTruth[imgNum], _vSVParamsName)); //Store the patch into the trainingSet
+			_vFeatures.push_back(new Patch(_vPaths[imgNum], patchOffset, roi, _vGroundTruth[imgNum], _vSVParamsName)); //Store the patch into the trainingSet
 		}
 
 		//Extract negative patchs
@@ -189,10 +189,10 @@ void TrainingSet::extractPatches()
 				pt = location.at<cv::Point_<int> >(0);
 			}
 
-			std::vector<cv::Mat> patchs;
+			//std::vector<cv::Mat> patchs;
 
 			cv::Rect_<int> roi(pt.x, pt.y, _width, _height); //patch
-			cv::Rect_<int> roiInt(pt.x, pt.y, _width+1, _height+1); //patch extended for integral image (1 line and col of zeros)
+			//cv::Rect_<int> roiInt(pt.x, pt.y, _width+1, _height+1); //patch extended for integral image (1 line and col of zeros)
 			cv::Point_<int> patchOffset(pt.x + (int)(_width/2) - _vCenters[imgNum].x, pt.y + (int)(_height/2) - _vCenters[imgNum].y); //patch Center
 
 			_vGroundTruth[imgNum][0] = 0; //Class negative
@@ -200,10 +200,10 @@ void TrainingSet::extractPatches()
 			_vGroundTruth[imgNum][2] = pt.y + (int)(_height/2) - _vCenters[imgNum].y;
 			_vGroundTruth[imgNum][3] = cv::randu<double>();
 
-			patchs.push_back(img(roi).clone());
-			patchs.push_back(sum(roiInt).clone());// patch of integral image
+			//patchs.push_back(img(roi).clone());
+			//patchs.push_back(sum(roiInt).clone());// patch of integral image
 
-			_vFeatures.push_back(new Patch(patchs, patchOffset, roi, _vGroundTruth[imgNum], _vSVParamsName)); //Store the patch into the trainingSet
+			_vFeatures.push_back(new Patch(_vPaths[imgNum], patchOffset, roi, _vGroundTruth[imgNum], _vSVParamsName)); //Store the patch into the trainingSet
 		}
 
 		std::cout << "image " << imgNum << " extracted !" << std::endl;

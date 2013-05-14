@@ -5,7 +5,6 @@ Feature::Feature(ForestEnv *forestEnv, ThreadManager* thread) : _pForestEnv(fore
 	_threshold=0;
 	_maxEntropy=0;
 	_features.clear();
-	_patchs.clear();
 	_maxFeature = _minFeature = 0;
 	_pRNG = _pForestEnv->getRNGSeed();
 }
@@ -59,8 +58,8 @@ void Feature::getSplittedDatasets(std::vector<Patch*>& left, std::vector<Patch*>
 	for (int feature=0 ; feature<_features.size() ; feature++)
 	{
 		//Warning ! bad alloc possibility
-        if(_features.at(feature)>_threshold) left.push_back(_patchs.at(feature));
-        else right.push_back(_patchs.at(feature));
+		if(_features.at(feature)>_threshold) left.push_back(_patchs->at(feature));
+		else right.push_back(_patchs->at(feature));
 	}
 	entropy = _maxEntropy;
 }
@@ -76,8 +75,8 @@ void Feature::splitDataset(int tr, std::vector<Patch*>& left, std::vector<Patch*
 	for (int feature=0 ; feature<_features.size() ; feature++)
 	{
 		//Warning ! bad alloc possibility
-        if(_features.at(feature)>tr) left.push_back(_patchs.at(feature));
-        else right.push_back(_patchs.at(feature));
+		if(_features.at(feature)>tr) left.push_back(_patchs->at(feature));
+		else right.push_back(_patchs->at(feature));
 	}
 }
 

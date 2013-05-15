@@ -18,6 +18,7 @@ class Forest
 	protected:
 		void initTrainingSet();//For training
 		void trainForest();//For training
+		void trainForest(int id);//For training with cross validation
 		void loadForest();//For detection
 	
 		ForestEnv *_forestEnv;// Env variable

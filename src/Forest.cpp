@@ -79,6 +79,11 @@ void Forest::trainForest()
     }
 }
 
+void Forest::trainForest(int id)
+{
+
+}
+
 //End of training methods
 
 //For detection

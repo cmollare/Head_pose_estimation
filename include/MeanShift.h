@@ -7,7 +7,7 @@
 class MeanShift
 {
     public:
-		MeanShift(std::vector<cv::Mat>& detections);
+		MeanShift(const std::vector<cv::Mat>& detections);
 		void iterate(int maxIter=10);
 		void getMaxCluster(std::vector<cv::Mat>& cluster, cv::Mat& clusterMean);
 

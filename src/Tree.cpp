@@ -236,7 +236,6 @@ void Tree::extractFeatures(std::vector<Feature*>& feat, const std::vector<Patch*
 		if (imagePath.compare(previousPath))
 		{
 			previousPath = imagePath;
-			img.release();
 			img = cv::imread(previousPath, CV_LOAD_IMAGE_GRAYSCALE);
 		}
 

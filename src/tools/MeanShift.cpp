@@ -1,6 +1,6 @@
 #include "MeanShift.h"
 
-MeanShift::MeanShift(std::vector<cv::Mat>& detections) : _detections(detections)
+MeanShift::MeanShift(const std::vector<cv::Mat>& detections) : _detections(detections)
 {
 	//std::cout << detections.size() << std::endl;
 	_maxClusters=100;
@@ -110,7 +110,7 @@ void MeanShift::iterate(int maxIter)
 
 	for (int c=0 ; c<newClusters.size() ; c++)
 	{
-		if (newClusters.size() < 10) continue;
+		//if (newClusters.size() < 10) continue;
 
 		_clusters.push_back(newClusters[c]);
 		_clusterMeans.push_back(newMeans[c]);

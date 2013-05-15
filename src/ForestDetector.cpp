@@ -204,6 +204,8 @@ void ForestDetector::detect(cv::Mat& image, std::string imageName)//deuxième pa
 		}
 	}
 
+	if (detectionMeans.size()==0) std::cout << "no detection" << std::endl;
+
 	MeanShift ms(detectionMeans);
 	cv::Mat mean;
 	ms.getMaxCluster(detectionMeans, mean);
@@ -230,7 +232,7 @@ void ForestDetector::detect(cv::Mat& image, std::string imageName)//deuxième pa
 		cv::Rect rect = rotatedRect.boundingRect();
 		rotatedRect = cv::CamShift(result, rect, cv::TermCriteria(cv::TermCriteria::COUNT + cv::TermCriteria::EPS, 10, 1));
 	}*/
-	cv::RotatedRect rotatedRect(cv::Point2f(mean.at<double>(0), mean.at<double>(1)), cv::Size2f(100/pas, 100/pas), 0);
+	cv::RotatedRect rotatedRect(cv::Point2f(mean.at<double>(0), mean.at<double>(1)), cv::Size2f(128/pas, 128/pas), 0);
 	std::cout << mean.at<double>(3) << " " << mean.at<double>(4) << " " << mean.at<double>(5) << std::endl;
 
 	cv::Mat imageToSave=result.clone();

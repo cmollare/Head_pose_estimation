@@ -50,8 +50,6 @@ class TrainingSet
 		std::vector<std::string> _vPaths;
 		cv::Size_<int> _templateSize;
 		std::vector<cv::Point_<int> > _vCenters;
-
-		//A supprimer
 		std::vector<Patch*> _vFeatures;
 
 		int _foldNumber;

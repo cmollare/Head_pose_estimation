@@ -64,14 +64,13 @@ ETHZParser::ETHZParser(std::string root, bool crossValidation) : DatabaseParser(
 	{
 		if(is_directory(*it))
 		{
-			std::cout << atoi(it->filename().string().c_str()) << std::endl;
 			_numFolder++;
 		}
 	}
 
-	_vGDTruth.resize(_numFolder);
-	_vPaths.resize(_numFolder);
-	_vCenters.resize(_numFolder);
+	_vGDTruth.resize(_numFolder, std::vector<std::vector<double> >());
+	_vPaths.resize(_numFolder, std::vector<std::string>());
+	_vCenters.resize(_numFolder, std::vector<cv::Point_<int> >());
 
 	int currentFolder=0;
 	for (std::vector<path>::const_iterator it = vec.begin() ; it != vec.end() ; it++)
@@ -79,6 +78,7 @@ ETHZParser::ETHZParser(std::string root, bool crossValidation) : DatabaseParser(
 		if(is_directory(*it))
 		{
 			 currentFolder = atoi(it->filename().string().c_str());
+			 currentFolder--;
 
 			 this->exploreFolderCV(*it, _vPaths[currentFolder], _vGDTruth[currentFolder], _vCenters[currentFolder]);
 		}
@@ -234,8 +234,8 @@ void ETHZParser::exploreFolderCV(const path& p, std::vector<std::string>& vPaths
 			std::string colorFile = textFile;
 			colorFile.replace(it->native().find("pose.txt"), std::string::npos, "rgb.png");//Retrieve paths of image associated to selected ground truth
 
-			_vPaths[0].push_back(colorFile);
-			this->readTextFile(textFile, calibRGBMat, _vGDTruth[0], _vCenters[0]);
+			vPaths.push_back(colorFile);
+			this->readTextFile(textFile, calibRGBMat, vStateVectors, vCenters);
 		}
 	}
 }

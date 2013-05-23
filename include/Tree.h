@@ -20,9 +20,9 @@ class Tree
 {
 	public:
 		Tree(ForestEnv* forestEnv, TrainingSet* ts, int treeId);//For learning
-		Tree(ForestEnv* forestEnv, int treeId);//For detection
+		Tree(ForestEnv* forestEnv, int treeId, std::string forestPath="");//For detection
 		~Tree();
-		void growTree();// For learning
+		void growTree(std::string forestPath="");// For learning
 		
 		void regression(Patch& patch, std::vector<Leaf*>& detectedLeaf);//For detection
 		void regression(Patch& patch, std::vector<Leaf*>& detectedLeaf, int node);//For detection (recursivity)
@@ -57,6 +57,8 @@ class Tree
 		
 		std::map<int, Feature*> _treeTable;
 		std::map<int, Leaf*> _leafNodes;
+
+		std::string _forestPath;
 
 
         //int _currentThreadNumber, _maxThreadNumber;

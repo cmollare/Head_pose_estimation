@@ -16,7 +16,7 @@ Tree::Tree(ForestEnv* forestEnv, TrainingSet* ts, int treeId) : _pForestEnv(fore
     _pThrdManager=NULL;
 }
 
-Tree::Tree(ForestEnv* forestEnv, int treeId) : _pForestEnv(forestEnv), _treeId(treeId)
+Tree::Tree(ForestEnv* forestEnv, int treeId, std::string forestPath) : _pForestEnv(forestEnv), _treeId(treeId)
 {
 	_pRNG=NULL;
 	_minSamples=0;
@@ -29,6 +29,9 @@ Tree::Tree(ForestEnv* forestEnv, int treeId) : _pForestEnv(forestEnv), _treeId(t
 	_vpPatchs.clear();
 	_pTrainingSet = NULL;
     _pThrdManager=NULL;
+
+	if(forestPath.empty()) _forestPath = _pForestEnv->getTreesPath();
+	else _forestPath = forestPath;
 //	_numClasses = _pForestEnv->getNumberOfClasses();
 		
 	this->loadTree();
@@ -49,8 +52,10 @@ Tree::~Tree()
 	_treeTable.clear();
 }
 
-void Tree::growTree()
+void Tree::growTree(std::string forestPath)
 {
+	if(forestPath.empty()) _forestPath = _pForestEnv->getTreesPath();
+	else _forestPath = forestPath;
 	//Copy adresses of Patchs in the vector _vpPatchs for training
 	_vpPatchs = _pTrainingSet->getVectorTs();
 	
@@ -346,7 +351,7 @@ void Tree::saveTree()
 	this->saveNode(root);//Save recursively
 	
 	ostringstream oss;
-	oss << _pForestEnv->getTreesPath() << "/" << _pForestEnv->getTreePrefix() << _treeId << ".xml";
+	oss << _forestPath << "/" << _pForestEnv->getTreePrefix() << _treeId << ".xml";
 	doc.SaveFile(oss.str());
 }
 
@@ -380,7 +385,7 @@ void Tree::saveNode(TiXmlElement *parentNode, int depth)
 void Tree::loadTree()
 {
 	ostringstream oss;
-	oss << _pForestEnv->getTreesPath() << "/" << _pForestEnv->getTreePrefix() << _treeId << ".xml";
+	oss << _forestPath << "/" << _pForestEnv->getTreePrefix() << _treeId << ".xml";
 	
 	TiXmlDocument doc(oss.str());
 	if(!doc.LoadFile()) throw ForestException("Error : file not found");

@@ -23,6 +23,13 @@ void CrossValidation::startCrossValidation()
 	{
 		std::cout << "start cross validation. Step " << _currDatabase + 1 << " on " << _maxDatabases << std::endl;
 		this->buildCurrentDatabase();
+		_pTrainingSet = new TrainingSet(_pForestEnv);
+		_pTrainingSet->initCrossValidation(_vCurrGDTruth[0], _vCurrPaths[0], _templateSize, _vCurrCenters[0]);
+
+		Forest forest(_pForestEnv, _pTrainingSet, i);
+
+		ForestDetector forestDetector(_pForestEnv, i);
+		forestDetector.detect(_vCurrGDTruth[1], _vCurrPaths[1], _templateSize, _vCurrCenters[1]);
 
 
 		std::cout << "start cross validation. Step " << _currDatabase + 1 << " on " << _maxDatabases << std::endl;
@@ -33,9 +40,6 @@ void CrossValidation::startCrossValidation()
 void CrossValidation::initCrossValidation()
 {
 	this->getDataBase();
-
-    _pTrainingSet = new TrainingSet(_pForestEnv);
-    _pTrainingSet->initCrossValidation();
 }
 
 void CrossValidation::getDataBase()
@@ -50,6 +54,7 @@ void CrossValidation::getDataBase()
 		_pDbParser = new ETHZParser(_pForestEnv->getClassFolderPath()["positive"], true);
 		_pDbParser->getStateVectorNames(_vStateVectorNames);
 		_pDbParser->getDatabaseCV(_vCenters, _vGDTruth, _vPaths);
+		_pDbParser->getTemplateSize(_templateSize);
 		_maxDatabases = _pDbParser->getnumFolders();
 	}
 	else throw ForestException("Unknown database : " + dbType);

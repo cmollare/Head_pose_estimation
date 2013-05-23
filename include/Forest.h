@@ -12,6 +12,8 @@ class Forest
 	public:
 		Forest(ForestEnv* forestEnv);//For training
 		Forest(ForestEnv* forestEnv, int dummy);//For detection
+		Forest(ForestEnv *forestEnv, int index, int dummy);//For detection in cross validation
+		Forest(ForestEnv *forestEnv, TrainingSet *ts, int index);//For training with cross validation
 		~Forest();
 		void regression(Patch& patch, std::vector<Leaf*>& detectedLeaf);
 		
@@ -19,7 +21,7 @@ class Forest
 		void initTrainingSet();//For training
 		void trainForest();//For training
 		void trainForest(int id);//For training with cross validation
-		void loadForest();//For detection
+		void loadForest(std::string forestPath="");//For detection
 	
 		ForestEnv *_forestEnv;// Env variable
 		TrainingSet *_pTrainingSet; //TrainingSet

@@ -6,6 +6,14 @@ ForestDetector::ForestDetector(ForestEnv* forestEnv)
 	pForest = new Forest(_pForestEnv, 0);
 }
 
+ForestDetector::ForestDetector(ForestEnv *forestEnv, int indice)
+{
+	_pForestEnv = forestEnv;
+	pForest = new Forest(_pForestEnv, indice, 0);
+	_index = indice;
+	std::cout << "indice : " << _index << std::endl;
+}
+
 ForestDetector::~ForestDetector()
 {
 	delete pForest;
@@ -62,14 +70,13 @@ void ForestDetector::detect(cv::Mat& image, std::string imageName)//deuxième pa
 	int width = image.size().width;
 	unsigned int patchWidth = _pForestEnv->getPatchWidth();
 	unsigned int patchHeight = _pForestEnv->getPatchHeight();
-	unsigned int nbPatch = (height-patchHeight)*(width-patchWidth);
 	
 	float currentMax=0;
 	double pas=2;
 	
 	//std::vector<Patch*> vecPatch(nbPatch);
     cv::Mat result = cv::Mat::zeros(image.size().height/pas, image.size().width/pas, CV_32F);
-    cv::Mat angle = cv::Mat::zeros(image.size().height/pas, image.size().width/pas, CV_64F);
+	cv::Mat angle = cv::Mat::zeros(image.size().height/pas, image.size().width/pas, CV_64F);
 
 	std::vector<cv::Point_<int> > offsetMeans;
 	std::vector<cv::Point_<double> > offsetVar;
@@ -79,7 +86,6 @@ void ForestDetector::detect(cv::Mat& image, std::string imageName)//deuxième pa
 
     double roll=0;
     double meanRoll=0;
-    double minAngle=0, maxAngle=0;
 
     std::vector<Leaf*> detectionVotes;
 	std::vector<cv::Mat> detectionMeans;
@@ -162,45 +168,6 @@ void ForestDetector::detect(cv::Mat& image, std::string imageName)//deuxième pa
 				}
 			}
 
-
-
-
-			
-			/*for (int i=0 ; i<detectedLeaf.size() ; i++)
-			{
-				std::vector<std::vector<cv::Point_<int> > > vecOffsets = detectedLeaf[i]->getOffsets();
-				std::vector<cv::Point_<int> > vecMeanOffsets = detectedLeaf[i]->getMeanOffsets();
-				std::vector<int> vecClasseSizes = detectedLeaf[i]->getClassSizes();
-				
-				//Ajouter le choix entre plusieurs offsets ou l'offset moyen
-				
-				/*
-				for (int j=0 ; j<vecOffsets[1].size() ; j++)
-				{
-					cv::Point_<int> offset(-vecOffsets[1][j].x+patchWidth/2+x, -vecOffsets[1][j].y+patchHeight/2+y);
-					if (offset.x >= 0 && offset.x < width && offset.y >= 0 && offset.y < height)
-					{
-						//std::cout << vecClasseSizes[1] << std::endl;
-						result.at<float>(offset) += 1.*float(vecClasseSizes[1]/float(vecClasseSizes[0]+vecClasseSizes[1]));
-						if (result.at<float>(offset) > currentMax) currentMax=result.at<float>(offset);
-					}
-                }//*/
-				
-				/*
-				cv::Point_<int> offset(-vecMeanOffsets[1].x+patchWidth/2+x, -vecMeanOffsets[1].y+patchHeight/2+y);
-				if (offset.x >= 0 && offset.x < width && offset.y >= 0 && offset.y < height)
-				{
-					//std::cout << vecClasseSizes[1] << std::endl;
-					result.at<float>(offset) += 1.*float(vecClasseSizes[1]/float(vecClasseSizes[0]+vecClasseSizes[1]));
-					if (result.at<float>(offset) > currentMax) currentMax=result.at<float>(offset);
-				}//*/
-				//if (vecMeanOffsets[1].x >= 0 && vecMeanOffsets[1].x < height && vecMeanOffsets[1].y >= 0 && vecMeanOffsets[1].y < width)
-				//	result.at<int>(vecMeanOffsets[1]) += vecClasseSizes[1];//Warning position of pixel depend of type !!! int == CV_32S, char == CV_8U
-				
-				//Ajouter une boucle pour faire la detection sur plusieurs classes
-				//if (vecMeanOffsets[1].x >= 0 && vecMeanOffsets[1].x < height && vecMeanOffsets[1].y >= 0 && vecMeanOffsets[1].y < width)
-				//	result.at<int>(vecMeanOffsets[1]) += vecClasseSizes[1];//Warning position of pixel depend of type !!! int == CV_32S, char == CV_8U
-			//}*/
 		}
 	}
 
@@ -253,4 +220,159 @@ void ForestDetector::detect(cv::Mat& image, std::string imageName)//deuxième pa
 
 	cv::waitKey(5000);
 	
+}
+
+void ForestDetector::detect(std::vector<std::vector<double> >& vGroundTruth, std::vector<std::string>& vPaths, cv::Size_<int>& templateSize, std::vector<cv::Point_<int> >& vCenters)
+{
+	std::ostringstream oss;
+	oss << "../output/result_learning_" << _index << ".txt" << std::endl;
+	std::fstream fileRes(oss.str().c_str(), std::fstream::out);
+
+
+	for (int imageInd=0 ; imageInd < vPaths.size() ; imageInd++)
+	{
+
+		cv::Mat image = cv::imread(vPaths.at(imageInd), CV_LOAD_IMAGE_GRAYSCALE);
+		cv::Mat integral;
+		cv::namedWindow("lol");
+		cv::namedWindow("detection");
+		cv::namedWindow("hough");
+		cv::integral(image, integral);
+
+		int height = image.size().height;
+		int width = image.size().width;
+		unsigned int patchWidth = _pForestEnv->getPatchWidth();
+		unsigned int patchHeight = _pForestEnv->getPatchHeight();
+
+		float currentMax=0;
+		double pas=2;
+
+		//For display
+		cv::Mat result = cv::Mat::zeros(image.size().height/pas, image.size().width/pas, CV_32F);
+		cv::Mat angle = cv::Mat::zeros(image.size().height/pas, image.size().width/pas, CV_64F);
+
+		std::vector<cv::Point_<int> > offsetMeans;
+		std::vector<cv::Point_<double> > offsetVar;
+		std::vector<int> nbPatchs;
+
+		cv::Mat imRoi, imIntRoi;
+
+		std::vector<Leaf*> detectionVotes;
+		std::vector<cv::Mat> detectionMeans;
+
+		for (int x=0 ; x < width-patchWidth ; x+=pas)//cols
+		{
+			for (int y=0 ; y < height-patchHeight ; y+=pas)//rows
+			{
+				cv::Rect_<int> roi(x, y, patchWidth, patchHeight);
+				cv::Rect_<int> roiInt(x, y, patchWidth+1, patchHeight+1); //patch
+				cv::Mat meanSV;
+				std::vector<cv::Mat> patchs;
+				double conf=0;
+
+
+				image(roi).copyTo(imRoi);
+				integral(roiInt).copyTo(imIntRoi);
+
+				patchs.push_back(imRoi);
+				patchs.push_back(imIntRoi);
+
+				Patch patch(patchs, roi);
+
+				std::vector<Leaf*> detectedLeaf;
+				pForest->regression(patch, detectedLeaf);
+
+				double test=0;
+				double denom=0;
+
+				for (int i=0 ; i<detectedLeaf.size() ; i++)
+				{
+
+					offsetMeans.push_back(detectedLeaf[i]->getMeanOffsets());
+					offsetVar.push_back(detectedLeaf[i]->getVarOffsets());
+					nbPatchs.push_back(detectedLeaf[i]->getNumberPatchs());
+					meanSV = detectedLeaf[i]->getSVMean().clone();
+					conf = detectedLeaf[i]->getConf();
+
+
+
+					//std::cout << offsetMeans.back() << " " << offsetVar.back() << " " << nbPatchs.back() << std::endl;
+					cv::Point_<int> offset(-offsetMeans.back().x+patchWidth/2+x, -offsetMeans.back().y+patchHeight/2+y);
+					if (offset.x >= 0 && offset.x < width && offset.y >= 0 && offset.y < height)
+					{
+						offset.x = offset.x/pas;
+						offset.y = offset.y/pas;
+						//if ((offsetVar.back().x <= 200) && (offsetVar.back().y <= 200))
+						if ((conf == 1) && (detectedLeaf[i]->getTrace() < 500))
+						{
+							detectionVotes.push_back(detectedLeaf[i]);
+							detectionMeans.push_back(detectedLeaf[i]->getSVMean().clone());
+							detectionMeans.back().at<double>(0) = offset.x*pas;
+							detectionMeans.back().at<double>(1) = offset.y*pas;
+
+
+							//Might be removed => only for display (and maybe detection with particle filtering)
+							result.at<float>(offset) += conf;
+							denom+=conf;
+							test+=conf*meanSV.at<double>(4);
+							angle.at<double>(y/pas, x/pas) = test/denom;
+
+						}
+						else
+						{
+							//still for display
+							angle.at<double>(y/pas, x/pas) = -100;
+						}
+						//display as well
+						if (result.at<float>(offset) > currentMax) currentMax=result.at<float>(offset);
+					}
+				}//End of leaf loop
+
+			}//End of rows loop
+		}//End of cols loop
+
+		if (detectionMeans.size()==0)
+		{
+			std::cout << "no detection" << std::endl;
+			continue;
+		}
+
+		//Detection with mean shift
+		MeanShift ms(detectionMeans);
+		cv::Mat mean;
+		ms.getMaxCluster(detectionMeans, mean);
+
+		//For display
+		result=result/currentMax*255;
+		result.convertTo(result, CV_8U);
+		angle=(angle+22)/45*255;
+		angle.convertTo(angle, CV_8U);
+		cv::applyColorMap(angle, angle, cv::COLORMAP_JET);
+		cv::imshow("hough", angle);
+
+		//Write in result file
+		fileRes << vPaths[imageInd] << " ";//Image
+		fileRes << vGroundTruth[imageInd].at(1) << " "<< vGroundTruth[imageInd].at(2) << " "<< vGroundTruth[imageInd].at(3) << " " << vGroundTruth[imageInd].at(4) << " " << vGroundTruth[imageInd].at(5) << " " << vGroundTruth[imageInd].at(6) << " ";//Ground Truth
+		fileRes << mean.at<double>(0) << " " << mean.at<double>(1) << " " << mean.at<double>(2) << " " << mean.at<double>(3) << " " << mean.at<double>(4) << " " << mean.at<double>(5) << std::endl;//Detection
+		//End of write
+
+		cv::RotatedRect rotatedRect(cv::Point2f(mean.at<double>(0)-128/(2*pas), mean.at<double>(1)-128/(2*pas)), cv::Size2f(128/(2*pas), 128/(2*pas)), 0);
+		//std::cout << mean.at<double>(3) << " " << mean.at<double>(4) << " " << mean.at<double>(5) << std::endl;
+
+		cv::Mat imageToSave=result.clone();
+		cv::ellipse(imageToSave, rotatedRect, cv::Scalar_<int>(0,255,0), 2);
+		rotatedRect.center = rotatedRect.center*pas;
+		rotatedRect.size.height = rotatedRect.size.height*pas;
+		rotatedRect.size.width = rotatedRect.size.width*pas;
+
+		cv::ellipse(image, rotatedRect, cv::Scalar_<int>(125,255,125), 2);
+
+
+		cv::applyColorMap(imageToSave, imageToSave, cv::COLORMAP_JET);
+		cv::imshow("detection", image);
+		cv::imshow("lol", imageToSave);
+
+		cv::waitKey(50);
+
+	}//End of images loop
 }

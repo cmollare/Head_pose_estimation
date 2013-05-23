@@ -4,6 +4,8 @@
 #include "ForestEnv.h"
 #include "TrainingSet.h"
 #include "DatabaseParser.h"
+#include "Forest.h"
+#include "ForestDetector.h"
 
 class CrossValidation
 {
@@ -34,6 +36,7 @@ class CrossValidation
 		std::vector<std::vector<cv::Point_<int> > > _vCurrCenters;
 		int _currDatabase;
 		int _maxDatabases;
+		cv::Size_<int> _templateSize;
 
 
 		std::vector<std::string> _vStateVectorNames;

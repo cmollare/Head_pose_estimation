@@ -27,14 +27,13 @@ class TrainingSet
 		TrainingSet(ForestEnv* forestEnv);
 		~TrainingSet();
 		void initTrainingSet();// Store the training set in memory
-		void initCrossValidation();// Initializer for cross validation
+		void initCrossValidation(std::vector<std::vector<double> >& vGroundTruth, std::vector<std::string>& vPaths, cv::Size_<int>& templateSize, std::vector<cv::Point_<int> >& vCenters);// Initializer for cross validation
 		int getNumberOfPatchs();// Getter
 		std::vector<Patch*>& getVectorTs();// Getter
 		
 	protected:
 		void getDataBase();
 		void shuffleDBVectors();// Shuffle vectors _vGroundTruth, _vPaths, _vCenters
-		void makeKFolders();
 		void extractPatches();
 		void readClasses();
 	

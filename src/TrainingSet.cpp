@@ -35,7 +35,7 @@ void TrainingSet::initTrainingSet()
 	
 }
 
-void TrainingSet::initCrossValidation()
+void TrainingSet::initCrossValidation(std::vector<std::vector<double> >& vGroundTruth, std::vector<std::string>& vPaths, cv::Size_<int>& templateSize, std::vector<cv::Point_<int> >& vCenters)
 {
 	_pRNG = _pForestEnv->getRNGSeed();
 	_width = _pForestEnv->getPatchWidth();
@@ -44,8 +44,13 @@ void TrainingSet::initCrossValidation()
 	_vSVParamsName = _pForestEnv->getSVParamsName();
 	_numParams = _vSVParamsName.size();
 
-	this->getDataBase();
-    //this->shuffleDBVectors();
+	_vGroundTruth.assign(vGroundTruth.begin(), vGroundTruth.end());
+	_vPaths.assign(vPaths.begin(), vPaths.end());
+	_vCenters.assign(vCenters.begin(), vCenters.end());
+
+	_templateSize = templateSize;
+
+	this->shuffleDBVectors();
 	this->extractPatches();
 
 	_nbPatchs=_vFeatures.size();
@@ -109,12 +114,6 @@ void TrainingSet::shuffleDBVectors()
 	std::cout << "Database shuffled" << std::endl;
 }
 
-void TrainingSet::makeKFolders()
-{
-	int _currentTestFolder=0;
-	//_vLearning
-}
-
 void TrainingSet::extractPatches()
 {
 
@@ -125,8 +124,8 @@ void TrainingSet::extractPatches()
 	for (int i=0 ; i<_vSVParamsName.size() ; i++) if (!_vSVParamsName[i].compare("x")) x=i;
 	for (int i=0 ; i<_vSVParamsName.size() ; i++) if (!_vSVParamsName[i].compare("y")) y=i;
 
-	for (int imgNum=0 ; imgNum<_vPaths.size() ; imgNum++)
-	//for (int imgNum=0 ; imgNum<6000 ; imgNum++)
+	//for (int imgNum=0 ; imgNum<_vPaths.size() ; imgNum++)
+	for (int imgNum=0 ; imgNum<600 ; imgNum++)
 	{
 		cv::Mat img = cv::imread(_vPaths[imgNum]);
 		//cv::cvtColor(img, img, CV_RGB2GRAY);// Only gray images
